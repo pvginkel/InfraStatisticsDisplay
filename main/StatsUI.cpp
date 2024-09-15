@@ -1,11 +1,11 @@
 ﻿#include "includes.h"
 
-#include "ThermostatUI.h"
+#include "StatsUI.h"
 
 #include "Messages.h"
 #include "lv_support.h"
 
-#define SELF(e) ((ThermostatUI*)lv_event_get_user_data((e)))
+#define SELF(e) ((StatsUI*)lv_event_get_user_data((e)))
 
 constexpr auto ARC_X_OFFSET = 50;
 constexpr auto ARC_Y_OFFSET = 57;
@@ -28,7 +28,7 @@ constexpr auto LOCAL_TEMPERATURE_Y_OFFSET = 74;
 constexpr auto LOCAL_TEMPERATURE_WIDTH = 40;
 constexpr auto LOCAL_TEMPERATURE_HEIGHT = 8;
 
-ThermostatUI::ThermostatUI(lv_obj_t* parent)
+StatsUI::StatsUI(lv_obj_t* parent)
     : LvglUI(parent),
       _stateLabel(nullptr),
       _setpointLabel(nullptr),
@@ -47,20 +47,22 @@ ThermostatUI::ThermostatUI(lv_obj_t* parent)
       _radialGradientDsc{},
       _msgbox(nullptr) {}
 
-ThermostatUI::~ThermostatUI() {
+StatsUI::~StatsUI() {
     if (_radialGradientDsc.data) {
         free((void*)_radialGradientDsc.data);
         _radialGradientDsc.data = nullptr;
     }
 }
 
-void ThermostatUI::setState(const ThermostatState& state) {
+void StatsUI::setState(const StatsDto& state) {
     _state = state;
 
+    /*
     renderState();
+    */
 }
 
-void ThermostatUI::doBegin() {
+void StatsUI::doBegin() {
     _radialGradientDsc.header.w = ph(ARC_RADIUS * 2.4);
     _radialGradientDsc.header.h = ph(ARC_RADIUS * 2.4);
 
@@ -70,7 +72,8 @@ void ThermostatUI::doBegin() {
     render();
 }
 
-void ThermostatUI::doRender(lv_obj_t* parent) {
+void StatsUI::doRender(lv_obj_t* parent) {
+    /*
     lv_obj_clear_flag(parent, LV_OBJ_FLAG_SCROLLABLE);
 
     lv_style_init(&_temperatureButtonStyle);
@@ -120,9 +123,10 @@ void ThermostatUI::doRender(lv_obj_t* parent) {
         upButton, [](auto e) { SELF(e)->handleSetpointChange(0.5); }, LV_EVENT_CLICKED, this);
 
     renderState();
+    */
 }
 
-lv_obj_t* ThermostatUI::createTemperatureButton(lv_obj_t* parent, const char* image, int x, int y, int radius) {
+lv_obj_t* StatsUI::createTemperatureButton(lv_obj_t* parent, const char* image, int x, int y, int radius) {
     const auto button = lv_btn_create(parent);
 
     lv_obj_add_style(button, &_temperatureButtonStyle, 0);
@@ -135,7 +139,7 @@ lv_obj_t* ThermostatUI::createTemperatureButton(lv_obj_t* parent, const char* im
     return button;
 }
 
-lv_obj_t* ThermostatUI::createLabel(lv_obj_t* parent, lv_style_t& style, int x, int y, int width, int height,
+lv_obj_t* StatsUI::createLabel(lv_obj_t* parent, lv_style_t& style, int x, int y, int width, int height,
                                     lv_text_align_t align) {
     const auto label = lv_label_create(parent);
 
@@ -146,7 +150,7 @@ lv_obj_t* ThermostatUI::createLabel(lv_obj_t* parent, lv_style_t& style, int x, 
     return label;
 }
 
-void ThermostatUI::createSetpointLabels(lv_obj_t* parent) {
+void StatsUI::createSetpointLabels(lv_obj_t* parent) {
     _setpointLabel = lv_label_create(parent);
     lv_obj_add_style(_setpointLabel, &_largeDigitsLabelStyle, 0);
 
@@ -158,7 +162,7 @@ void ThermostatUI::createSetpointLabels(lv_obj_t* parent) {
     lv_obj_add_style(_setpointFractionLabel, &_normalLabelStyle, 0);
 }
 
-void ThermostatUI::createArcControl(lv_obj_t* parent) {
+void StatsUI::createArcControl(lv_obj_t* parent) {
     auto backgroundArc = createArcObject(parent, _arcBackgroundColor);
 
     _setpointArc = createArcObject(parent, _arcColor);
@@ -191,7 +195,8 @@ void ThermostatUI::createArcControl(lv_obj_t* parent) {
     setupArcHitTesting(_setpointCircle);
 }
 
-void ThermostatUI::setupArcHitTesting(lv_obj_t* obj) {
+void StatsUI::setupArcHitTesting(lv_obj_t* obj) {
+    /*
     lv_obj_add_event_cb(
         obj, [](auto e) { SELF(e)->handleArcPressed(e); }, LV_EVENT_PRESSING, this);
     lv_obj_add_event_cb(
@@ -199,9 +204,10 @@ void ThermostatUI::setupArcHitTesting(lv_obj_t* obj) {
     lv_obj_add_event_cb(
         obj, [](auto e) { SELF(e)->handleArcPressed(e); }, LV_EVENT_RELEASED, this);
     lv_obj_add_flag(obj, LV_OBJ_FLAG_ADV_HITTEST);
+    */
 }
 
-void ThermostatUI::positionCircleOnArc(lv_obj_t* obj, int size, int angleDegrees) {
+void StatsUI::positionCircleOnArc(lv_obj_t* obj, int size, int angleDegrees) {
     auto centerX = pw(ARC_X_OFFSET);
     auto centerY = ph(ARC_Y_OFFSET);
     auto arcWidth = ph(ARC_WIDTH);
@@ -216,7 +222,7 @@ void ThermostatUI::positionCircleOnArc(lv_obj_t* obj, int size, int angleDegrees
     lv_obj_set_y(obj, int32_t(y));
 }
 
-lv_obj_t* ThermostatUI::createArcObject(lv_obj_t* parent, lv_color_t color) {
+lv_obj_t* StatsUI::createArcObject(lv_obj_t* parent, lv_color_t color) {
     auto arc = lv_arc_create(parent);
 
     lv_obj_set_style_arc_width(arc, ph(ARC_WIDTH), LV_PART_MAIN);
@@ -235,9 +241,10 @@ lv_obj_t* ThermostatUI::createArcObject(lv_obj_t* parent, lv_color_t color) {
     return arc;
 }
 
-void ThermostatUI::handleSetpointChange(double offset) { setSetpoint(_state.setpoint + offset); }
+/*
+void StatsUI::handleSetpointChange(double offset) { setSetpoint(_state.setpoint + offset); }
 
-void ThermostatUI::setSetpoint(double setpoint) {
+void StatsUI::setSetpoint(double setpoint) {
     _state.setpoint = roundSetpoint(setpoint);
 
     renderState();
@@ -245,7 +252,7 @@ void ThermostatUI::setSetpoint(double setpoint) {
     _setpointChanged.call(_state.setpoint);
 }
 
-double ThermostatUI::roundSetpoint(double setpoint) {
+double StatsUI::roundSetpoint(double setpoint) {
     if (isnan(setpoint)) {
         return setpoint;
     }
@@ -255,7 +262,7 @@ double ThermostatUI::roundSetpoint(double setpoint) {
     return round(setpointClamped * 2) / 2.0;
 }
 
-void ThermostatUI::renderState() {
+void StatsUI::renderState() {
     lv_label_set_text(_stateLabel, _state.state == ThermostatRunningState::True ? Messages::heating : Messages::idle);
 
     if (isnan(_state.setpoint)) {
@@ -367,7 +374,7 @@ void ThermostatUI::renderState() {
     }
 }
 
-void ThermostatUI::handleArcPressed(lv_event_t* e) {
+void StatsUI::handleArcPressed(lv_event_t* e) {
     switch (lv_event_get_code(e)) {
         case LV_EVENT_PRESSED:
             return;
@@ -411,7 +418,7 @@ void ThermostatUI::handleArcPressed(lv_event_t* e) {
     }
 }
 
-void ThermostatUI::handleMode() {
+void StatsUI::handleMode() {
     static const char* button_labels[] = {nullptr, nullptr, ""};
 
     if (!button_labels[0]) {
@@ -443,7 +450,7 @@ void ThermostatUI::handleMode() {
     lv_obj_set_size(buttons, pw(75), lv_dpx(125));
 }
 
-void ThermostatUI::handleSetMode(ThermostatMode mode) {
+void StatsUI::handleSetMode(ThermostatMode mode) {
     if (_msgbox) {
         lv_msgbox_close(_msgbox);
         _msgbox = nullptr;
@@ -457,3 +464,4 @@ void ThermostatUI::handleSetMode(ThermostatMode mode) {
 
     _modeChanged.call(mode);
 }
+*/

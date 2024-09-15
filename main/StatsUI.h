@@ -1,9 +1,9 @@
 ﻿#pragma once
 
 #include "LvglUI.h"
-#include "ThermostatState.h"
+#include "StatsDto.h"
 
-class ThermostatUI : public LvglUI {
+class StatsUI : public LvglUI {
     static constexpr double TEMPERATURE_MIN = 9;
     static constexpr double TEMPERATURE_MAX = 35;
 
@@ -11,7 +11,7 @@ class ThermostatUI : public LvglUI {
     lv_style_t _normalLabelStyle;
     lv_style_t _largeDigitsLabelStyle;
     lv_obj_t* _stateLabel;
-    ThermostatState _state;
+    StatsDto _state;
     lv_obj_t* _setpointLabel;
     lv_obj_t* _setpointUnitLabel;
     lv_obj_t* _setpointFractionLabel;
@@ -34,10 +34,10 @@ class ThermostatUI : public LvglUI {
     lv_obj_t* _msgbox;
 
 public:
-    ThermostatUI(lv_obj_t* parent);
-    ~ThermostatUI() override;
-    const ThermostatState& getState() const { return _state; }
-    void setState(const ThermostatState& state);
+    StatsUI(lv_obj_t* parent);
+    ~StatsUI() override;
+    const StatsDto& getState() const { return _state; }
+    void setState(const StatsDto& state);
     void onSetpointChanged(function<void(double)> func) { _setpointChanged.add(func); }
     void onModeChanged(function<void(ThermostatMode)> func) { _modeChanged.add(func); }
 
@@ -54,11 +54,11 @@ private:
     void setupArcHitTesting(lv_obj_t* obj);
     void positionCircleOnArc(lv_obj_t* obj, int size, int angleDegrees);
     lv_obj_t* createArcObject(lv_obj_t* parent, lv_color_t color);
-    void handleSetpointChange(double offset);
-    void setSetpoint(double setpoint);
-    double roundSetpoint(double setpoint);
-    void renderState();
-    void handleArcPressed(lv_event_t* e);
-    void handleMode();
-    void handleSetMode(ThermostatMode mode);
+    //void handleSetpointChange(double offset);
+    //void setSetpoint(double setpoint);
+    //double roundSetpoint(double setpoint);
+    //void renderState();
+    //void handleArcPressed(lv_event_t* e);
+    //void handleMode();
+    //void handleSetMode(ThermostatMode mode);
 };
