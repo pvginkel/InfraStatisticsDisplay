@@ -15,4 +15,4 @@ message(STATUS "Firmware version set to: ${PROJECT_VER}")
 
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
 
-project(esp32-thermostat-display)
+project(esp32-infra-statistics-display)
