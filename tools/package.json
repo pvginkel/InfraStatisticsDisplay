@@ -1,0 +1,24 @@
+{
+  "name": "bin",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "generate-fonts": "ts-node generate-fonts.ts"
+  },
+  "prettier": {
+    "singleQuote": true,
+    "arrowParens": "avoid",
+    "printWidth": 160
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^16.0.0",
+    "ts-node": "^10.0.0",
+    "typescript": "^4.3.5"
+  },
+  "dependencies": {
+    "lv_font_conv": "^1.5.2"
+  }
+}

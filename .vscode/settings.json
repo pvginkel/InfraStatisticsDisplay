@@ -1,0 +1,37 @@
+{
+  "idf.adapterTargetName": "esp32s3",
+  "idf.portWin": "COM3",
+  "idf.flashType": "UART",
+  "files.associations": {
+    "array": "cpp",
+    "*.tcc": "cpp",
+    "deque": "cpp",
+    "list": "cpp",
+    "string": "cpp",
+    "unordered_map": "cpp",
+    "vector": "cpp",
+    "string_view": "cpp",
+    "memory": "cpp",
+    "random": "cpp",
+    "initializer_list": "cpp",
+    "mutex": "cpp",
+    "regex": "cpp",
+    "cstdarg": "cpp",
+    "algorithm": "cpp",
+    "sdmmc_cmd.h": "c",
+    "sdmmc_types.h": "c",
+    "esp_vfs_fat.h": "c",
+    "wificonnection.h": "c",
+    "atomic": "cpp",
+    "memory_resource": "cpp",
+    "stop_token": "cpp",
+    "*.inc": "c",
+    "functional": "cpp",
+    "stdarg.h": "c"
+  },
+  "cSpell.words": ["LOGI", "Lvgl", "MQTT", "roboto", "setpoint"],
+  "files.exclude": {
+    "documentation": true,
+    "LvglWindowsSimulator": true
+  }
+}
