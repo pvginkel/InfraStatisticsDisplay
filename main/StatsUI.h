@@ -1,64 +1,40 @@
 ﻿#pragma once
 
+#include "Device.h"
 #include "LvglUI.h"
 #include "StatsDto.h"
 
 class StatsUI : public LvglUI {
-    static constexpr double TEMPERATURE_MIN = 9;
-    static constexpr double TEMPERATURE_MAX = 35;
+	struct Job {
+		Job(const char* icon, const char* status_icon, string&& name, time_t time)
+			: icon(icon), status_icon(status_icon), name(move(name)), time(time) {
+		}
 
-    lv_style_t _temperatureButtonStyle;
-    lv_style_t _normalLabelStyle;
-    lv_style_t _largeDigitsLabelStyle;
-    lv_obj_t* _stateLabel;
-    StatsDto _state;
-    lv_obj_t* _setpointLabel;
-    lv_obj_t* _setpointUnitLabel;
-    lv_obj_t* _setpointFractionLabel;
-    lv_obj_t* _localTemperatureLabel;
-    lv_obj_t* _setpointArc;
-    lv_obj_t* _setpointHeatingArc;
-    lv_obj_t* _localTemperatureCircle;
-    lv_obj_t* _setpointCircle;
-    lv_obj_t* _setpointOuterCircle;
-    Callback<double> _setpointChanged;
-    Callback<ThermostatMode> _modeChanged;
-    lv_color_t _arcBackgroundColor;
-    lv_color_t _arcColor;
-    lv_color_t _arcActiveColor;
-    lv_color32_t _arcActiveColor32;
-    lv_color_t _notHeatingColor;
-    lv_img_dsc_t _radialGradientDsc;
-    lv_obj_t* _radialGradientImage;
-    lv_obj_t* _modeButton;
-    lv_obj_t* _msgbox;
+		const char* icon;
+		const char* status_icon;
+		string name;
+		time_t time;
+	};
+
+	Device* _device;
+	StatsDto _stats;
 
 public:
-    StatsUI(lv_obj_t* parent);
-    ~StatsUI() override;
-    const StatsDto& getState() const { return _state; }
-    void setState(const StatsDto& state);
-    void onSetpointChanged(function<void(double)> func) { _setpointChanged.add(func); }
-    void onModeChanged(function<void(ThermostatMode)> func) { _modeChanged.add(func); }
+	StatsUI(Device* device) : _device(device) {}
+
+	void set_stats(StatsDto&& stats) {
+		_stats = move(stats);
+	}
 
 protected:
-    void doRender(lv_obj_t* parent) override;
-    void doBegin() override;
-
-private:
-    lv_obj_t* createTemperatureButton(lv_obj_t* parent, const char* image, int x, int y, int radius);
-    lv_obj_t* createLabel(lv_obj_t* parent, lv_style_t& style, int x, int y, int width, int height,
-                          lv_text_align_t align);
-    void createSetpointLabels(lv_obj_t* parent);
-    void createArcControl(lv_obj_t* parent);
-    void setupArcHitTesting(lv_obj_t* obj);
-    void positionCircleOnArc(lv_obj_t* obj, int size, int angleDegrees);
-    lv_obj_t* createArcObject(lv_obj_t* parent, lv_color_t color);
-    //void handleSetpointChange(double offset);
-    //void setSetpoint(double setpoint);
-    //double roundSetpoint(double setpoint);
-    //void renderState();
-    //void handleArcPressed(lv_event_t* e);
-    //void handleMode();
-    //void handleSetMode(ThermostatMode mode);
+	void do_begin() override;
+	void create_kubernetes_nodes(lv_obj_t* parent, uint8_t col, uint8_t row);
+	void create_kubernetes_node(lv_obj_t* parent, KubernetesNodeDto& node, uint8_t col, uint8_t row);
+	void create_statistics(lv_obj_t* parent, uint8_t col, uint8_t row);
+	void create_container_starts_cell(lv_obj_t* parent, int value, const char* icon, uint8_t col, uint8_t row);
+	void create_last_builds(lv_obj_t* parent, uint8_t col, uint8_t row);
+	void create_failed_jobs(lv_obj_t* parent, uint8_t col, uint8_t row);
+	void create_job(lv_obj_t* parent, Job& job, uint8_t col, uint8_t row);
+	void create_jobs(lv_obj_t* parent, vector<Job>& jobs, uint8_t col, uint8_t row);
+	void do_render(lv_obj_t* parent) override;
 };

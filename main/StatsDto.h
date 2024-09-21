@@ -18,12 +18,12 @@ struct JenkinsBuildDto {
 struct KubernetesNodeDto {
     string name;
     time_t created;
-    int allocatedPods;
-    int allocatedContainers;
-    int64_t cpuCapacity;
-    int64_t cpuUsage;
-    int64_t memoryCapacity;
-    int64_t memoryUsage;
+    int allocated_pods;
+    int allocated_containers;
+    int64_t cpu_capacity;
+    int64_t cpu_usage;
+    int64_t memory_capacity;
+    int64_t memory_usage;
 };
 
 struct KubernetesJobDto {
@@ -31,7 +31,7 @@ struct KubernetesJobDto {
     string ns;
     time_t created;
     time_t completed;
-    bool isCompleted;
+    bool is_completed;
     int succeeded;
     int failed;
 };
@@ -42,34 +42,11 @@ struct ContainerStartsStatsDto {
 };
 
 struct StatsDto {
-    vector<JenkinsBuildDto> lastBuilds;
-    vector<JenkinsBuildDto> lastFailedBuilds;
+    vector<JenkinsBuildDto> last_builds;
+    vector<JenkinsBuildDto> last_failed_builds;
     vector<KubernetesNodeDto> nodes;
-    vector<KubernetesJobDto> lastFailedJobs;
-    ContainerStartsStatsDto containerStarts;
+    vector<KubernetesJobDto> last_failed_jobs;
+    ContainerStartsStatsDto container_starts;
 
-    static bool fromJson(const char* jsonString, StatsDto& stats);
-};
-
-enum class ThermostatRunningState { Unknown, True, False };
-enum class ThermostatMode { Off, Heat };
-
-struct ThermostatState {
-    double localTemperature;
-    double localHumidity;
-    double setpoint;
-    ThermostatMode mode;
-    ThermostatRunningState state;
-
-    ThermostatState() : localTemperature(NAN), localHumidity(NAN), setpoint(NAN), mode(), state() {}
-
-    bool equals(ThermostatState &other) {
-        return localTemperature == other.localTemperature && localHumidity == other.localHumidity &&
-               setpoint == other.setpoint && mode == other.mode && state == other.state;
-    }
-
-    bool valid() {
-        return !isnan(localTemperature) && !isnan(localHumidity) && !isnan(setpoint) &&
-               state != ThermostatRunningState::Unknown;
-    }
+    static bool from_json(const char* json_string, StatsDto& stats);
 };

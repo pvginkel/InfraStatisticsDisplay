@@ -1,5 +1,7 @@
 #pragma once
 
+#include "cJSON.h"
+
 #define esp_get_millis() uint32_t(esp_timer_get_time() / 1000ull)
 
 string format(const char* fmt, ...);
@@ -42,6 +44,57 @@ string format(const char* fmt, ...);
 
 bool iequals(const string& a, const string& b);
 int hextoi(char c);
+
+#define LOG_TAG(v) static const char* TAG = #v
+
+#ifdef LV_SIMULATOR
+#define taskENTER_CRITICAL()
+#define taskEXIT_CRITICAL()
+#endif
+
+template <typename T>
+class critical_value {
+    T _value;
+
+public:
+    critical_value(T value) : _value(value) {}
+
+    T get() {
+        taskENTER_CRITICAL();
+        T value = _value;
+        taskEXIT_CRITICAL();
+        return _value;
+    }
+
+    void update(function<T(T)> func) {
+        taskENTER_CRITICAL();
+        _value = func(_value);
+        taskEXIT_CRITICAL();
+    }
+};
+
+class cJSON_Data {
+    cJSON* _data;
+
+public:
+    cJSON_Data(cJSON* data) : _data(data) {}
+    cJSON_Data(const cJSON_Data& other) = delete;
+    cJSON_Data(cJSON_Data&& other) noexcept = delete;
+    cJSON_Data& operator=(const cJSON_Data& other) = delete;
+    cJSON_Data& operator=(cJSON_Data&& other) noexcept = delete;
+
+    ~cJSON_Data() {
+        if (_data) {
+            cJSON_Delete(_data);
+        }
+    }
+
+    cJSON* operator*() const { return _data; }
+};
+
+#ifdef LV_SIMULATOR
+#define localtime_r(timep, result) localtime_s(result, timep)
+#endif
 
 #ifndef LV_SIMULATOR
 

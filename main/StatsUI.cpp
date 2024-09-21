@@ -1,467 +1,273 @@
 ﻿#include "includes.h"
 
 #include "StatsUI.h"
-
-#include "Messages.h"
 #include "lv_support.h"
 
-#define SELF(e) ((StatsUI*)lv_event_get_user_data((e)))
+#include <chrono>
+#include <ctime>
 
-constexpr auto ARC_X_OFFSET = 50;
-constexpr auto ARC_Y_OFFSET = 57;
-constexpr auto ARC_WIDTH = 9;
-constexpr auto ARC_RADIUS = 52;
-constexpr auto ARC_LOCAL_TEMPERATURE_CIRCLE_SIZE = 2.5;
-constexpr auto ARC_SETPOINT_CIRCLE_SIZE = 6.5;
+#include "Messages.h"
 
-constexpr auto BUTTON_RADIUS = 6;
-constexpr auto BUTTON_CHANGE_X_OFFSET = 90;
-constexpr auto BUTTON_CHANGE_Y_RELATIVE_OFFSET = BUTTON_RADIUS * 2 + 2;
-constexpr auto BUTTON_MODE_X_OFFSET = 10;
-constexpr auto BUTTON_MODE_Y_OFFSET = 10;
+LOG_TAG(StatsUI);
 
-constexpr auto STATUS_Y_OFFSET = 33;
-constexpr auto STATUS_WIDTH = 40;
-constexpr auto STATUS_HEIGHT = 8;
-constexpr auto SETPOINT_Y_OFFSET = 54;
-constexpr auto LOCAL_TEMPERATURE_Y_OFFSET = 74;
-constexpr auto LOCAL_TEMPERATURE_WIDTH = 40;
-constexpr auto LOCAL_TEMPERATURE_HEIGHT = 8;
-
-StatsUI::StatsUI(lv_obj_t* parent)
-    : LvglUI(parent),
-      _stateLabel(nullptr),
-      _setpointLabel(nullptr),
-      _setpointFractionLabel(nullptr),
-      _localTemperatureLabel(nullptr),
-      _setpointArc(nullptr),
-      _setpointHeatingArc(nullptr),
-      _localTemperatureCircle(nullptr),
-      _setpointCircle(nullptr),
-      _setpointOuterCircle(nullptr),
-      _arcBackgroundColor(lv_color_make(41, 41, 41)),
-      _arcColor(lv_color_make(134, 65, 34)),
-      _arcActiveColor(lv_color_make(252, 114, 52)),
-      _arcActiveColor32(lv_color32_make(252, 114, 52)),
-      _notHeatingColor(lv_color_make(132, 132, 132)),
-      _radialGradientDsc{},
-      _msgbox(nullptr) {}
-
-StatsUI::~StatsUI() {
-    if (_radialGradientDsc.data) {
-        free((void*)_radialGradientDsc.data);
-        _radialGradientDsc.data = nullptr;
-    }
+void StatsUI::do_begin() {
+	LvglUI::do_begin();
 }
 
-void StatsUI::setState(const StatsDto& state) {
-    _state = state;
+void StatsUI::do_render(lv_obj_t* parent) {
+	auto outer_cont = lv_obj_create(parent);
+	reset_outer_container_styles(outer_cont);
+	static lv_coord_t outer_cont_col_desc[] = { LV_GRID_FR(1), LV_GRID_TEMPLATE_LAST };
+	static lv_coord_t outer_cont_row_desc[] = { LV_GRID_FR(1), LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_FR(1), LV_GRID_TEMPLATE_LAST };
+	lv_obj_set_grid_dsc_array(outer_cont, outer_cont_col_desc, outer_cont_row_desc);
 
-    /*
-    renderState();
-    */
+	create_statistics(outer_cont, 0, 1);
+	create_kubernetes_nodes(outer_cont, 0, 2);
+
+	auto bottom_outer_cont = lv_obj_create(outer_cont);
+	reset_layout_container_styles(bottom_outer_cont);
+	static lv_coord_t bottom_outer_cont_col_desc[] = { LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_TEMPLATE_LAST };
+	static lv_coord_t bottom_outer_cont_row_desc[] = { LV_GRID_CONTENT, LV_GRID_TEMPLATE_LAST };
+	lv_obj_set_grid_dsc_array(bottom_outer_cont, bottom_outer_cont_col_desc, bottom_outer_cont_row_desc);
+	lv_obj_set_grid_cell(bottom_outer_cont, LV_GRID_ALIGN_STRETCH, 0, LV_GRID_ALIGN_STRETCH, 3);
+
+	create_last_builds(bottom_outer_cont, 0, 0);
+	create_failed_jobs(bottom_outer_cont, 1, 0);
 }
 
-void StatsUI::doBegin() {
-    _radialGradientDsc.header.w = ph(ARC_RADIUS * 2.4);
-    _radialGradientDsc.header.h = ph(ARC_RADIUS * 2.4);
+void StatsUI::create_kubernetes_nodes(lv_obj_t* parent, uint8_t col, uint8_t row) {
+	auto node_count = _stats.nodes.size();
 
-    lv_image_create_radial_dsc(&_radialGradientDsc, lv_color32_make(0, 0, 0),
-                               lv_color32_mix(_arcActiveColor32, lv_color32_make(0, 0, 0), (int)(255 * 0.15f)));
+	auto nodes_cont = lv_obj_create(parent);
+	reset_layout_container_styles(nodes_cont);
+	static lv_coord_t* top_outer_cont_col_desc = nullptr;
+	delete[] top_outer_cont_col_desc;
+	top_outer_cont_col_desc = new lv_coord_t[node_count + 1];
+	for (size_t i = 0; i < node_count; i++) {
+		top_outer_cont_col_desc[i] = LV_GRID_FR(1);
+	}
+	top_outer_cont_col_desc[node_count] = LV_GRID_TEMPLATE_LAST;
+	static lv_coord_t top_outer_cont_row_desc[] = { LV_GRID_FR(1), LV_GRID_TEMPLATE_LAST };
+	lv_obj_set_grid_dsc_array(nodes_cont, top_outer_cont_col_desc, top_outer_cont_row_desc);
+	lv_obj_set_grid_cell(nodes_cont, LV_GRID_ALIGN_STRETCH, col, LV_GRID_ALIGN_START, row);
+	lv_obj_set_style_pad_ver(nodes_cont, lv_dpx(20), LV_PART_MAIN);
 
-    render();
+	for (size_t i = 0; i < node_count; i++) {
+		create_kubernetes_node(nodes_cont, _stats.nodes[i], i, 0);
+	}
 }
 
-void StatsUI::doRender(lv_obj_t* parent) {
-    /*
-    lv_obj_clear_flag(parent, LV_OBJ_FLAG_SCROLLABLE);
+void StatsUI::create_kubernetes_node(lv_obj_t* parent, KubernetesNodeDto& node, uint8_t col, uint8_t row) {
+	auto circle_cont = lv_obj_create(parent);
+	reset_layout_container_styles(circle_cont);
+	lv_obj_set_grid_cell(circle_cont, LV_GRID_ALIGN_CENTER, col, LV_GRID_ALIGN_START, row);
+	static lv_coord_t cont_col_desc[] = { LV_GRID_FR(1), LV_GRID_TEMPLATE_LAST };
+	static lv_coord_t cont_row_desc[] = { LV_GRID_FR(1), LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_FR(1), LV_GRID_TEMPLATE_LAST };
+	lv_obj_set_grid_dsc_array(circle_cont, cont_col_desc, cont_row_desc);
+	lv_obj_set_size(circle_cont, lv_dpx(230), lv_dpx(230));
+	lv_obj_set_style_radius(circle_cont, LV_RADIUS_CIRCLE, LV_PART_MAIN);
+	lv_obj_set_style_border_width(circle_cont, lv_dpx(5), LV_PART_MAIN);
+	lv_obj_set_style_border_color(circle_cont, lv_color_black(), LV_PART_MAIN);
+	lv_obj_set_style_bg_opa(circle_cont, 0, LV_PART_MAIN);
 
-    lv_style_init(&_temperatureButtonStyle);
-    lv_style_set_bg_color(&_temperatureButtonStyle, lv_color_black());
-    lv_style_set_border_color(&_temperatureButtonStyle, lv_theme_get_color_primary(parent));
-    lv_style_set_border_width(&_temperatureButtonStyle, 4);
-    lv_style_set_text_font(&_temperatureButtonStyle, NORMAL_FONT);
+	auto name_label = lv_label_create(circle_cont);
+	lv_obj_set_grid_cell(name_label, LV_GRID_ALIGN_CENTER, 0, LV_GRID_ALIGN_START, 1);
+	lv_label_set_text(name_label, node.name.c_str());
+	lv_obj_set_style_text_font(name_label, SMALL_FONT, LV_PART_MAIN);
 
-    lv_style_init(&_normalLabelStyle);
-    lv_style_set_text_font(&_normalLabelStyle, NORMAL_FONT);
-    lv_style_set_text_align(&_normalLabelStyle, LV_TEXT_ALIGN_CENTER);
+	auto resources_row = lv_obj_create(circle_cont);
+	reset_layout_container_styles(resources_row);
+	lv_obj_set_grid_cell(resources_row, LV_GRID_ALIGN_CENTER, 0, LV_GRID_ALIGN_START, 2);
+	static lv_coord_t row1_cont_col_desc[] = { LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_TEMPLATE_LAST };
+	static lv_coord_t row1_cont_row_desc[] = { LV_GRID_CONTENT, LV_GRID_TEMPLATE_LAST };
+	lv_obj_set_grid_dsc_array(resources_row, row1_cont_col_desc, row1_cont_row_desc);
+	lv_obj_set_style_pad_ver(resources_row, lv_dpx(7), LV_PART_MAIN);
 
-    lv_style_init(&_largeDigitsLabelStyle);
-    lv_style_set_text_font(&_largeDigitsLabelStyle, LARGE_DIGITS_FONT);
-    lv_style_set_text_align(&_largeDigitsLabelStyle, LV_TEXT_ALIGN_CENTER);
+	auto cpu_icon_label = lv_label_create(resources_row);
+	lv_label_set_text(cpu_icon_label, FA_MICROCHIP);
+	lv_obj_set_style_text_font(cpu_icon_label, XSMALL_FONT, LV_PART_MAIN);
+	lv_obj_set_grid_cell(cpu_icon_label, LV_GRID_ALIGN_START, 0, LV_GRID_ALIGN_CENTER, 0);
 
-    _radialGradientImage = lv_img_create(parent);
-    lv_img_set_src(_radialGradientImage, &_radialGradientDsc);
-    lv_obj_set_bounds(_radialGradientImage, pw(ARC_X_OFFSET), ph(ARC_Y_OFFSET), _radialGradientDsc.header.w,
-                      _radialGradientDsc.header.h, LV_TEXT_ALIGN_CENTER);
+	auto cpu_label = lv_label_create(resources_row);
+	lv_label_set_text(cpu_label, format("%d%%", (int)(node.cpu_usage * 100.0f / node.cpu_capacity)).c_str());
+	lv_obj_set_style_text_font(cpu_label, SMALL_FONT, LV_PART_MAIN);
+	lv_obj_set_style_pad_hor(cpu_label, lv_dpx(5), LV_PART_MAIN);
+	lv_obj_set_grid_cell(cpu_label, LV_GRID_ALIGN_START, 1, LV_GRID_ALIGN_CENTER, 0);
 
-    _stateLabel = createLabel(parent, _normalLabelStyle, pw(50), ph(STATUS_Y_OFFSET), pw(STATUS_WIDTH),
-                              ph(STATUS_HEIGHT), LV_TEXT_ALIGN_CENTER);
+	auto memory_icon_label = lv_label_create(resources_row);
+	lv_label_set_text(memory_icon_label, FA_MEMORY);
+	lv_obj_set_style_text_font(memory_icon_label, XSMALL_FONT, LV_PART_MAIN);
+	lv_obj_set_style_pad_left(memory_icon_label, lv_dpx(5), LV_PART_MAIN);
+	lv_obj_set_grid_cell(memory_icon_label, LV_GRID_ALIGN_START, 2, LV_GRID_ALIGN_CENTER, 0);
 
-    createSetpointLabels(parent);
+	auto memory_label = lv_label_create(resources_row);
+	lv_label_set_text(memory_label, format("%d%%", (int)(node.memory_usage * 100.0f / node.memory_capacity)).c_str());
+	lv_obj_set_style_text_font(memory_label, SMALL_FONT, LV_PART_MAIN);
+	lv_obj_set_style_pad_hor(memory_label, lv_dpx(5), LV_PART_MAIN);
+	lv_obj_set_grid_cell(memory_label, LV_GRID_ALIGN_START, 3, LV_GRID_ALIGN_CENTER, 0);
 
-    _localTemperatureLabel =
-        createLabel(parent, _normalLabelStyle, pw(50), ph(LOCAL_TEMPERATURE_Y_OFFSET), pw(LOCAL_TEMPERATURE_WIDTH),
-                    ph(LOCAL_TEMPERATURE_HEIGHT), LV_TEXT_ALIGN_CENTER);
+	auto containers_row = lv_obj_create(circle_cont);
+	reset_layout_container_styles(containers_row);
+	lv_obj_set_grid_cell(containers_row, LV_GRID_ALIGN_CENTER, 0, LV_GRID_ALIGN_START, 3);
+	static lv_coord_t row2_cont_col_desc[] = { LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_TEMPLATE_LAST };
+	static lv_coord_t row2_cont_row_desc[] = { LV_GRID_CONTENT, LV_GRID_TEMPLATE_LAST };
+	lv_obj_set_grid_dsc_array(containers_row, row2_cont_col_desc, row2_cont_row_desc);
 
-    createArcControl(parent);
+	auto pods_icon_label = lv_label_create(containers_row);
+	lv_label_set_text(pods_icon_label, FA_CUBES);
+	lv_obj_set_style_text_font(pods_icon_label, XSMALL_FONT, LV_PART_MAIN);
+	lv_obj_set_grid_cell(pods_icon_label, LV_GRID_ALIGN_START, 0, LV_GRID_ALIGN_CENTER, 0);
 
-    _modeButton =
-        createTemperatureButton(parent, "", pw(BUTTON_MODE_X_OFFSET), pw(BUTTON_MODE_Y_OFFSET), pw(BUTTON_RADIUS));
+	auto pods_label = lv_label_create(containers_row);
+	lv_label_set_text(pods_label, format("%d", node.allocated_pods).c_str());
+	lv_obj_set_style_text_font(pods_label, SMALL_FONT, LV_PART_MAIN);
+	lv_obj_set_style_pad_hor(pods_label, lv_dpx(5), LV_PART_MAIN);
+	lv_obj_set_grid_cell(pods_label, LV_GRID_ALIGN_START, 1, LV_GRID_ALIGN_CENTER, 0);
 
-    lv_obj_add_event_cb(
-        _modeButton, [](auto e) { SELF(e)->handleMode(); }, LV_EVENT_CLICKED, this);
+	auto containers_icon_label = lv_label_create(containers_row);
+	lv_label_set_text(containers_icon_label, FA_CUBE);
+	lv_obj_set_style_text_font(containers_icon_label, XSMALL_FONT, LV_PART_MAIN);
+	lv_obj_set_style_pad_left(containers_icon_label, lv_dpx(5), LV_PART_MAIN);
+	lv_obj_set_grid_cell(containers_icon_label, LV_GRID_ALIGN_START, 2, LV_GRID_ALIGN_CENTER, 0);
 
-    const auto downButton = createTemperatureButton(parent, LV_SYMBOL_MINUS, pw(BUTTON_CHANGE_X_OFFSET),
-                                                    ph(50 + BUTTON_CHANGE_Y_RELATIVE_OFFSET), pw(BUTTON_RADIUS));
-    lv_obj_add_event_cb(
-        downButton, [](auto e) { SELF(e)->handleSetpointChange(-0.5); }, LV_EVENT_CLICKED, this);
-
-    const auto upButton = createTemperatureButton(parent, LV_SYMBOL_PLUS, pw(BUTTON_CHANGE_X_OFFSET),
-                                                  ph(50 - BUTTON_CHANGE_Y_RELATIVE_OFFSET), pw(BUTTON_RADIUS));
-    lv_obj_add_event_cb(
-        upButton, [](auto e) { SELF(e)->handleSetpointChange(0.5); }, LV_EVENT_CLICKED, this);
-
-    renderState();
-    */
+	auto containers_label = lv_label_create(containers_row);
+	lv_label_set_text(containers_label, format("%d", node.allocated_containers).c_str());
+	lv_obj_set_style_text_font(containers_label, SMALL_FONT, LV_PART_MAIN);
+	lv_obj_set_style_pad_hor(containers_label, lv_dpx(5), LV_PART_MAIN);
+	lv_obj_set_grid_cell(containers_label, LV_GRID_ALIGN_START, 3, LV_GRID_ALIGN_CENTER, 0);
 }
 
-lv_obj_t* StatsUI::createTemperatureButton(lv_obj_t* parent, const char* image, int x, int y, int radius) {
-    const auto button = lv_btn_create(parent);
+void StatsUI::create_statistics(lv_obj_t* parent, uint8_t col, uint8_t row) {
+	auto cont = lv_obj_create(parent);
+	reset_layout_container_styles(cont);
+	lv_obj_set_grid_cell(cont, LV_GRID_ALIGN_STRETCH, col, LV_GRID_ALIGN_CENTER, row);
+	static lv_coord_t cont_col_desc[] = { LV_GRID_FR(1), LV_GRID_CONTENT, LV_GRID_FR(1), LV_GRID_CONTENT, LV_GRID_FR(1), LV_GRID_TEMPLATE_LAST };
+	static lv_coord_t cont_row_desc[] = { LV_GRID_CONTENT, LV_GRID_TEMPLATE_LAST };
+	lv_obj_set_grid_dsc_array(cont, cont_col_desc, cont_row_desc);
 
-    lv_obj_add_style(button, &_temperatureButtonStyle, 0);
-    lv_obj_set_size(button, radius * 2, radius * 2);
-    lv_obj_set_x(button, x - radius);
-    lv_obj_set_y(button, y - radius);
-    lv_obj_set_style_radius(button, LV_RADIUS_CIRCLE, 0);
-    lv_obj_set_style_bg_img_src(button, image, 0);
-
-    return button;
+	create_container_starts_cell(cont, _stats.container_starts.week, FA_CALENDAR_WEEK, 1, 0);
+	create_container_starts_cell(cont, _stats.container_starts.day, FA_CALENDAR_DAY, 3, 0);
 }
 
-lv_obj_t* StatsUI::createLabel(lv_obj_t* parent, lv_style_t& style, int x, int y, int width, int height,
-                                    lv_text_align_t align) {
-    const auto label = lv_label_create(parent);
+void StatsUI::create_container_starts_cell(lv_obj_t* parent, int value, const char* icon, uint8_t col, uint8_t row) {
+	auto cont = lv_obj_create(parent);
+	reset_layout_container_styles(cont);
+	lv_obj_set_grid_cell(cont, LV_GRID_ALIGN_START, col, LV_GRID_ALIGN_CENTER, row);
+	static lv_coord_t cont_col_desc[] = { LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_TEMPLATE_LAST };
+	static lv_coord_t cont_row_desc[] = { LV_GRID_CONTENT, LV_GRID_TEMPLATE_LAST };
+	lv_obj_set_grid_dsc_array(cont, cont_col_desc, cont_row_desc);
 
-    lv_obj_add_style(label, &style, 0);
-    lv_obj_set_style_text_align(label, align, LV_PART_MAIN);
-    lv_obj_set_bounds(label, x, y, width, height, align);
+	auto icon_label = lv_label_create(cont);
+	lv_label_set_text(icon_label, icon);
+	lv_obj_set_style_text_font(icon_label, SMALL_FONT, LV_PART_MAIN);
+	lv_obj_set_grid_cell(icon_label, LV_GRID_ALIGN_START, 0, LV_GRID_ALIGN_CENTER, 0);
 
-    return label;
+	auto label = lv_label_create(cont);
+	lv_label_set_text(label, format("%d", value).c_str());
+	lv_obj_set_style_text_font(label, NORMAL_FONT, LV_PART_MAIN);
+	lv_obj_set_grid_cell(label, LV_GRID_ALIGN_START, 1, LV_GRID_ALIGN_CENTER, 0);
+	lv_obj_set_style_pad_hor(label, lv_dpx(16), LV_PART_MAIN);
+
+	auto container_icon_label = lv_label_create(cont);
+	lv_label_set_text(container_icon_label, FA_CUBE);
+	lv_obj_set_style_text_font(container_icon_label, SMALL_FONT, LV_PART_MAIN);
+	lv_obj_set_grid_cell(container_icon_label, LV_GRID_ALIGN_START, 2, LV_GRID_ALIGN_CENTER, 0);
 }
 
-void StatsUI::createSetpointLabels(lv_obj_t* parent) {
-    _setpointLabel = lv_label_create(parent);
-    lv_obj_add_style(_setpointLabel, &_largeDigitsLabelStyle, 0);
+void StatsUI::create_last_builds(lv_obj_t* parent, uint8_t col, uint8_t row) {
+	vector<Job> jobs;
 
-    _setpointUnitLabel = lv_label_create(parent);
-    lv_obj_add_style(_setpointUnitLabel, &_normalLabelStyle, 0);
-    lv_label_set_text(_setpointUnitLabel, "°C");
+	jobs.reserve(_stats.last_builds.size());
 
-    _setpointFractionLabel = lv_label_create(parent);
-    lv_obj_add_style(_setpointFractionLabel, &_normalLabelStyle, 0);
+	for (auto& build : _stats.last_builds) {
+		jobs.emplace_back(FA_GEARS, nullptr, move(format("#%d %s", build.number, build.name.c_str())), build.execution);
+	}
+
+	create_jobs(parent, jobs, col, row);
 }
 
-void StatsUI::createArcControl(lv_obj_t* parent) {
-    auto backgroundArc = createArcObject(parent, _arcBackgroundColor);
+void StatsUI::create_failed_jobs(lv_obj_t* parent, uint8_t col, uint8_t row) {
+	vector<Job> jobs;
 
-    _setpointArc = createArcObject(parent, _arcColor);
+	jobs.reserve(_stats.last_failed_builds.size() + _stats.last_failed_jobs.size());
 
-    _setpointHeatingArc = createArcObject(parent, _arcActiveColor);
+	for (auto& build : _stats.last_failed_builds) {
+		jobs.emplace_back(FA_GEARS, FA_CIRCLE_EXCLAMATION, move(format("#%d %s", build.number, build.name.c_str())), build.execution);
+	}
 
-    _localTemperatureCircle = lv_obj_create(parent);
-    lv_obj_set_style_radius(_localTemperatureCircle, LV_RADIUS_CIRCLE, LV_PART_MAIN);
-    lv_obj_set_size(_localTemperatureCircle, ph(ARC_LOCAL_TEMPERATURE_CIRCLE_SIZE),
-                    ph(ARC_LOCAL_TEMPERATURE_CIRCLE_SIZE));
+	for (auto& job : _stats.last_failed_jobs) {
+		jobs.emplace_back(FA_CIRCLE_PLAY, FA_CIRCLE_EXCLAMATION, move(format("%s (%s)", job.name.c_str(), job.ns.c_str())), job.created);
+	}
 
-    _setpointOuterCircle = lv_obj_create(parent);
-    lv_obj_clear_flag(_setpointOuterCircle, LV_OBJ_FLAG_SCROLLABLE);
-    lv_obj_set_style_radius(_setpointOuterCircle, LV_RADIUS_CIRCLE, LV_PART_MAIN);
-    lv_obj_set_size(_setpointOuterCircle, ph(ARC_WIDTH), ph(ARC_WIDTH));
-    lv_obj_set_style_bg_color(_setpointOuterCircle, _arcActiveColor, LV_PART_MAIN);
-    lv_obj_set_style_border_color(_setpointOuterCircle, _arcActiveColor, LV_PART_MAIN);
+	sort(jobs.begin(), jobs.end(), [](const Job& a, const Job& b)
+		{
+			return a.time < b.time;
+		});
 
-    _setpointCircle = lv_obj_create(parent);
-    lv_obj_clear_flag(_setpointCircle, LV_OBJ_FLAG_SCROLLABLE);
-    lv_obj_set_style_radius(_setpointCircle, LV_RADIUS_CIRCLE, LV_PART_MAIN);
-    lv_obj_set_size(_setpointCircle, ph(ARC_SETPOINT_CIRCLE_SIZE), ph(ARC_SETPOINT_CIRCLE_SIZE));
-    lv_obj_set_style_bg_color(_setpointCircle, lv_color_white(), LV_PART_MAIN);
-    lv_obj_set_style_border_color(_setpointCircle, lv_color_white(), LV_PART_MAIN);
-
-    setupArcHitTesting(backgroundArc);
-    setupArcHitTesting(_setpointArc);
-    setupArcHitTesting(_setpointHeatingArc);
-    setupArcHitTesting(_localTemperatureCircle);
-    setupArcHitTesting(_setpointCircle);
+	create_jobs(parent, jobs, col, row);
 }
 
-void StatsUI::setupArcHitTesting(lv_obj_t* obj) {
-    /*
-    lv_obj_add_event_cb(
-        obj, [](auto e) { SELF(e)->handleArcPressed(e); }, LV_EVENT_PRESSING, this);
-    lv_obj_add_event_cb(
-        obj, [](auto e) { SELF(e)->handleArcPressed(e); }, LV_EVENT_PRESSED, this);
-    lv_obj_add_event_cb(
-        obj, [](auto e) { SELF(e)->handleArcPressed(e); }, LV_EVENT_RELEASED, this);
-    lv_obj_add_flag(obj, LV_OBJ_FLAG_ADV_HITTEST);
-    */
+void StatsUI::create_jobs(lv_obj_t* parent, vector<Job>& jobs, uint8_t col, uint8_t row) {
+	auto cont = lv_obj_create(parent);
+	reset_layout_container_styles(cont);
+	lv_obj_set_grid_cell(cont, LV_GRID_ALIGN_STRETCH, col, LV_GRID_ALIGN_START, row);
+	static lv_coord_t cont_col_desc[] = { LV_GRID_FR(1), LV_GRID_TEMPLATE_LAST };
+	static lv_coord_t cont_row_desc[] = { LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_TEMPLATE_LAST };
+	lv_obj_set_grid_dsc_array(cont, cont_col_desc, cont_row_desc);
+
+	auto job_count = min((int)jobs.size(), 5);
+
+	for (auto i = 0; i < job_count; i++) {
+		create_job(cont, jobs[i], 0, i);
+	}
 }
 
-void StatsUI::positionCircleOnArc(lv_obj_t* obj, int size, int angleDegrees) {
-    auto centerX = pw(ARC_X_OFFSET);
-    auto centerY = ph(ARC_Y_OFFSET);
-    auto arcWidth = ph(ARC_WIDTH);
-    auto radius = ph(ARC_RADIUS) - arcWidth / 2;
+void StatsUI::create_job(lv_obj_t* parent, Job& job, uint8_t col, uint8_t row) {
+	auto cont = lv_obj_create(parent);
+	reset_layout_container_styles(cont);
+	lv_obj_set_grid_cell(cont, LV_GRID_ALIGN_STRETCH, col, LV_GRID_ALIGN_START, row);
+	static lv_coord_t cont_col_desc[] = { LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_FR(1), LV_GRID_TEMPLATE_LAST };
+	static lv_coord_t cont_row_desc[] = { LV_GRID_CONTENT, LV_GRID_TEMPLATE_LAST };
+	lv_obj_set_grid_dsc_array(cont, cont_col_desc, cont_row_desc);
 
-    auto angleRadians = (angleDegrees + 135) * (M_PI / 180);
+	if (job.status_icon) {
+		auto status_icon_label = lv_label_create(cont);
+		lv_label_set_text(status_icon_label, job.status_icon);
+		lv_obj_set_style_text_font(status_icon_label, XSMALL_FONT, LV_PART_MAIN);
+		lv_obj_set_style_pad_left(status_icon_label, lv_dpx(5), LV_PART_MAIN);
+		lv_obj_set_grid_cell(status_icon_label, LV_GRID_ALIGN_START, 0, LV_GRID_ALIGN_CENTER, 0);
+	}
 
-    auto x = centerX + radius * cos(angleRadians) - size / 2;
-    auto y = centerY + radius * sin(angleRadians) - size / 2;
+	auto icon_label = lv_label_create(cont);
+	lv_label_set_text(icon_label, job.icon);
+	lv_obj_set_style_text_font(icon_label, XSMALL_FONT, LV_PART_MAIN);
+	lv_obj_set_style_pad_left(icon_label, lv_dpx(5), LV_PART_MAIN);
+	lv_obj_set_grid_cell(icon_label, LV_GRID_ALIGN_START, 1, LV_GRID_ALIGN_CENTER, 0);
 
-    lv_obj_set_x(obj, int32_t(x));
-    lv_obj_set_y(obj, int32_t(y));
+	tm job_time_info;
+	localtime_r(&job.time, &job_time_info);
+
+	time_t now;
+	tm now_time_info;
+	time(&now);
+	localtime_r(&now, &now_time_info);
+
+	string time_str;
+
+	if (job_time_info.tm_year != now_time_info.tm_year) {
+		time_str = format("%d", job_time_info.tm_year);
+	}
+	else if (!(job_time_info.tm_mon == now_time_info.tm_mon && job_time_info.tm_mday == now_time_info.tm_mday)) {
+		time_str = format("%d-%d", job_time_info.tm_mday, job_time_info.tm_mon);
+	}
+	else {
+		time_str = format("%d:%02d", now_time_info.tm_hour, now_time_info.tm_min);
+	}
+
+	auto label = lv_label_create(cont);
+	lv_label_set_text(label, format("%s: %s", time_str.c_str(), job.name.c_str()).c_str());
+	lv_label_set_long_mode(label, LV_LABEL_LONG_DOT);
+	lv_obj_set_style_text_font(label, SMALL_FONT, LV_PART_MAIN);
+	lv_obj_set_style_pad_hor(label, lv_dpx(5), LV_PART_MAIN);
+	lv_obj_set_grid_cell(label, LV_GRID_ALIGN_STRETCH, 2, LV_GRID_ALIGN_CENTER, 0);
 }
-
-lv_obj_t* StatsUI::createArcObject(lv_obj_t* parent, lv_color_t color) {
-    auto arc = lv_arc_create(parent);
-
-    lv_obj_set_style_arc_width(arc, ph(ARC_WIDTH), LV_PART_MAIN);
-    lv_obj_set_style_bg_color(arc, color, LV_PART_KNOB);
-    lv_obj_set_style_arc_color(arc, color, LV_PART_MAIN);
-
-    lv_obj_set_style_arc_width(arc, 0, LV_PART_INDICATOR);
-    lv_obj_set_style_pad_all(arc, 0, LV_PART_KNOB);
-
-    lv_obj_set_bounds(arc, pw(ARC_X_OFFSET), ph(ARC_Y_OFFSET), ph(ARC_RADIUS * 2), ph(ARC_RADIUS * 2),
-                      LV_TEXT_ALIGN_CENTER);
-    lv_arc_set_rotation(arc, 135);
-
-    lv_arc_set_bg_angles(arc, 0, 270);
-
-    return arc;
-}
-
-/*
-void StatsUI::handleSetpointChange(double offset) { setSetpoint(_state.setpoint + offset); }
-
-void StatsUI::setSetpoint(double setpoint) {
-    _state.setpoint = roundSetpoint(setpoint);
-
-    renderState();
-
-    _setpointChanged.call(_state.setpoint);
-}
-
-double StatsUI::roundSetpoint(double setpoint) {
-    if (isnan(setpoint)) {
-        return setpoint;
-    }
-
-    auto setpointClamped = clamp(setpoint, TEMPERATURE_MIN, TEMPERATURE_MAX);
-
-    return round(setpointClamped * 2) / 2.0;
-}
-
-void StatsUI::renderState() {
-    lv_label_set_text(_stateLabel, _state.state == ThermostatRunningState::True ? Messages::heating : Messages::idle);
-
-    if (isnan(_state.setpoint)) {
-        lv_label_set_text(_setpointLabel, "NA");
-        lv_label_set_text(_setpointFractionLabel, "");
-    } else {
-        const auto roundedSetpoint = roundSetpoint(_state.setpoint);
-
-        const auto setpointLabel = format("%d", int(roundedSetpoint));
-        lv_label_set_text(_setpointLabel, setpointLabel.c_str());
-
-        const auto setpointFractionLabel = format(",%d", int(roundedSetpoint * 10) % 10);
-        lv_label_set_text(_setpointFractionLabel, setpointFractionLabel.c_str());
-    }
-
-    if (_state.mode == ThermostatMode::Heat) {
-        lv_obj_set_style_bg_img_src(_modeButton, Messages::fireFlameCurvedIcon, 0);
-    } else {
-        lv_obj_set_style_bg_img_src(_modeButton, Messages::powerOffIcon, 0);
-    }
-
-    // Reposition the labels.
-    lv_point_t setpointLabelSize;
-    lv_label_get_text_size(&setpointLabelSize, _setpointLabel, 0, 0, LV_COORD_MAX, LV_TEXT_FLAG_EXPAND);
-    lv_point_t setpointUnitLabelSize;
-    lv_label_get_text_size(&setpointUnitLabelSize, _setpointUnitLabel, 0, 0, LV_COORD_MAX, LV_TEXT_FLAG_EXPAND);
-    lv_point_t setpointFractionLabelSize;
-    lv_label_get_text_size(&setpointFractionLabelSize, _setpointFractionLabel, 0, 0, LV_COORD_MAX, LV_TEXT_FLAG_EXPAND);
-
-    const auto setpointFullWidth = setpointLabelSize.x + max(setpointUnitLabelSize.x, setpointFractionLabelSize.x);
-    const auto setpointXOffset = pw(50) - setpointFullWidth / 2;
-
-    const auto setpointYOffset = ph(SETPOINT_Y_OFFSET) - setpointLabelSize.y / 2;
-
-    const auto setpointUnitLabelNudge = -6;
-    const auto setpointFractionLabelNudge = 9;
-
-    lv_obj_set_pos(_setpointLabel, setpointXOffset, setpointYOffset);
-    lv_obj_set_pos(_setpointUnitLabel, setpointXOffset + setpointLabelSize.x, setpointYOffset + setpointUnitLabelNudge);
-    lv_obj_set_pos(_setpointFractionLabel, setpointXOffset + setpointLabelSize.x,
-                   setpointYOffset + setpointLabelSize.y - setpointFractionLabelSize.y + setpointFractionLabelNudge);
-
-    if (isnan(_state.localTemperature)) {
-        lv_label_set_text(_localTemperatureLabel, "NA");
-    } else {
-        auto localTemperatureLabel = format("\xef\x8b\x89 %.1f °C", _state.localTemperature);
-        replace(localTemperatureLabel.begin(), localTemperatureLabel.end(), '.', ',');
-        lv_label_set_text(_localTemperatureLabel, localTemperatureLabel.c_str());
-    }
-
-    double setpointOffset = 0;
-    double localTemperatureOffset = 0;
-
-    if (!isnan(_state.setpoint)) {
-        setpointOffset = int((clamp(_state.setpoint, TEMPERATURE_MIN, TEMPERATURE_MAX) - TEMPERATURE_MIN) /
-                             (TEMPERATURE_MAX - TEMPERATURE_MIN) * 270);
-    }
-
-    if (!isnan(_state.localTemperature)) {
-        localTemperatureOffset =
-            int((clamp(_state.localTemperature, TEMPERATURE_MIN, TEMPERATURE_MAX) - TEMPERATURE_MIN) /
-                (TEMPERATURE_MAX - TEMPERATURE_MIN) * 270);
-    }
-
-    if (_state.mode == ThermostatMode::Off) {
-        lv_obj_add_flag(_setpointArc, LV_OBJ_FLAG_HIDDEN);
-    } else {
-        lv_obj_clear_flag(_setpointArc, LV_OBJ_FLAG_HIDDEN);
-        lv_arc_set_bg_angles(_setpointArc, 0, setpointOffset);
-    }
-
-    auto setpointOuterCircleColor = _state.mode == ThermostatMode::Heat ? _arcActiveColor : _notHeatingColor;
-
-    lv_obj_set_style_bg_color(_setpointOuterCircle, setpointOuterCircleColor, LV_PART_MAIN);
-    lv_obj_set_style_border_color(_setpointOuterCircle, setpointOuterCircleColor, LV_PART_MAIN);
-
-    if (_state.mode == ThermostatMode::Off || setpointOffset <= localTemperatureOffset) {
-        lv_obj_add_flag(_setpointHeatingArc, LV_OBJ_FLAG_HIDDEN);
-        lv_obj_clear_flag(_setpointOuterCircle, LV_OBJ_FLAG_HIDDEN);
-    } else {
-        lv_obj_clear_flag(_setpointHeatingArc, LV_OBJ_FLAG_HIDDEN);
-        lv_obj_add_flag(_setpointOuterCircle, LV_OBJ_FLAG_HIDDEN);
-
-        lv_arc_set_bg_angles(_setpointHeatingArc, localTemperatureOffset, setpointOffset);
-    }
-
-    positionCircleOnArc(_localTemperatureCircle, ph(ARC_LOCAL_TEMPERATURE_CIRCLE_SIZE), int(localTemperatureOffset));
-
-    auto localTemperatureCircleColor = _state.mode == ThermostatMode::Off || setpointOffset < localTemperatureOffset
-                                           ? _notHeatingColor
-                                           : lv_color_make(134, 65, 34);
-
-    lv_obj_set_style_bg_color(_localTemperatureCircle, localTemperatureCircleColor, LV_PART_MAIN);
-    lv_obj_set_style_border_color(_localTemperatureCircle, localTemperatureCircleColor, LV_PART_MAIN);
-
-    positionCircleOnArc(_setpointCircle, ph(ARC_SETPOINT_CIRCLE_SIZE), int(setpointOffset));
-    positionCircleOnArc(_setpointOuterCircle, ph(ARC_WIDTH), int(setpointOffset));
-
-    // Update colors.
-    auto stateColor = _state.state == ThermostatRunningState::True ? _arcActiveColor : lv_color_white();
-
-    lv_obj_set_style_text_color(_stateLabel, stateColor, LV_PART_MAIN);
-    lv_obj_set_style_text_color(_localTemperatureLabel, stateColor, LV_PART_MAIN);
-
-    if (_state.state == ThermostatRunningState::True) {
-        lv_obj_clear_flag(_radialGradientImage, LV_OBJ_FLAG_HIDDEN);
-    } else {
-        lv_obj_add_flag(_radialGradientImage, LV_OBJ_FLAG_HIDDEN);
-    }
-}
-
-void StatsUI::handleArcPressed(lv_event_t* e) {
-    switch (lv_event_get_code(e)) {
-        case LV_EVENT_PRESSED:
-            return;
-
-        case LV_EVENT_RELEASED:
-            setSetpoint(_state.setpoint);
-            return;
-    }
-
-    auto inputDevice = lv_indev_get_act();
-    auto inputDeviceType = lv_indev_get_type(inputDevice);
-    if (inputDeviceType == LV_INDEV_TYPE_ENCODER || inputDeviceType == LV_INDEV_TYPE_KEYPAD) {
-        return;
-    }
-
-    lv_point_t p;
-    lv_indev_get_point(inputDevice, &p);
-
-    // Calculate the angle from the coordinates.
-
-    auto centerX = pw(ARC_X_OFFSET);
-    auto centerY = ph(ARC_Y_OFFSET);
-
-    auto angleRadians = atan2(p.y - centerY, p.x - centerX);
-    auto angleDegrees = angleRadians * (180 / M_PI) - 90;
-
-    if (angleDegrees < 0) {
-        angleDegrees += 360;
-    }
-
-    // The arc starts at 45 and ends at 270. Account for this.
-
-    angleDegrees = clamp(angleDegrees - 45, 0.0, 270.0);
-
-    const auto oldAngleDegrees = ((_state.setpoint - TEMPERATURE_MIN) / (TEMPERATURE_MAX - TEMPERATURE_MIN)) * 270;
-
-    if (int(angleDegrees) != int(oldAngleDegrees)) {
-        _state.setpoint = TEMPERATURE_MIN + ((TEMPERATURE_MAX - TEMPERATURE_MIN) * (angleDegrees / 270));
-
-        renderState();
-    }
-}
-
-void StatsUI::handleMode() {
-    static const char* button_labels[] = {nullptr, nullptr, ""};
-
-    if (!button_labels[0]) {
-        button_labels[0] = strdup(format("%s %s", Messages::fireFlameCurvedIcon, Messages::heating).c_str());
-        button_labels[1] = strdup(format("%s %s", Messages::powerOffIcon, Messages::off).c_str());
-    }
-
-    _msgbox = lv_msgbox_create(nullptr, nullptr, nullptr, button_labels, false);
-
-    lv_obj_add_event_cb(
-        _msgbox,
-        [](auto e) {
-            auto msgbox = lv_event_get_current_target(e);
-            auto button = lv_msgbox_get_active_btn(msgbox);
-
-            SELF(e)->handleSetMode(button == 0 ? ThermostatMode::Heat : ThermostatMode::Off);
-        },
-        LV_EVENT_VALUE_CHANGED, this);
-
-    auto buttons = lv_msgbox_get_btns(_msgbox);
-
-    lv_obj_center(_msgbox);
-
-    lv_obj_set_width(_msgbox, pw(85));
-    lv_obj_set_style_text_font(buttons, NORMAL_FONT, LV_PART_ITEMS);
-    lv_obj_set_style_pad_left(buttons, lv_dpx(20), LV_PART_MAIN);
-    lv_obj_set_style_pad_top(buttons, lv_dpx(20), LV_PART_MAIN);
-    lv_obj_set_style_pad_bottom(buttons, lv_dpx(34), LV_PART_MAIN);
-    lv_obj_set_size(buttons, pw(75), lv_dpx(125));
-}
-
-void StatsUI::handleSetMode(ThermostatMode mode) {
-    if (_msgbox) {
-        lv_msgbox_close(_msgbox);
-        _msgbox = nullptr;
-    }
-
-#if LV_SIMULATOR
-    _state.mode = mode;
-
-    renderState();
-#endif
-
-    _modeChanged.call(mode);
-}
-*/

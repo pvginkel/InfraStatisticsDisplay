@@ -1,8 +1,10 @@
+// ReSharper disable CppClangTidyMiscUseAnonymousNamespace
+
 #include "includes.h"
 #include "StatsDto.h"
 #include "cJSON.h"
 
-static bool parseJenkinsBuildStatus(const char* statusStr, JenkinsBuildStatus& status) {
+static bool parse_jenkins_build_status(const char* statusStr, JenkinsBuildStatus& status) {
     if (strcmp(statusStr, "ABORTED") == 0) {
         status = JenkinsBuildStatus::Aborted;
     }
@@ -26,7 +28,7 @@ static bool parseJenkinsBuildStatus(const char* statusStr, JenkinsBuildStatus& s
 }
 
 // Helper function to parse JenkinsBuildDto
-static bool parseJenkinsBuild(const cJSON* item, JenkinsBuildDto& build) {
+static bool parse_jenkins_build(const cJSON* item, JenkinsBuildDto& build) {
     if (!cJSON_IsObject(item)) return false;
 
     const cJSON* name = cJSON_GetObjectItemCaseSensitive(item, "name");
@@ -42,7 +44,7 @@ static bool parseJenkinsBuild(const cJSON* item, JenkinsBuildDto& build) {
     build.name = name->valuestring;
     build.number = number->valueint;
     build.execution = static_cast<time_t>(execution->valuedouble);
-    if (!parseJenkinsBuildStatus(status->valuestring, build.status)) {
+    if (!parse_jenkins_build_status(status->valuestring, build.status)) {
         return false;
     }
 
@@ -50,7 +52,7 @@ static bool parseJenkinsBuild(const cJSON* item, JenkinsBuildDto& build) {
 }
 
 // Helper function to parse KubernetesNodeDto
-static bool parseKubernetesNode(const cJSON* item, KubernetesNodeDto& node) {
+static bool parse_kubernetes_node(const cJSON* item, KubernetesNodeDto& node) {
     if (!cJSON_IsObject(item)) return false;
 
     const cJSON* name = cJSON_GetObjectItemCaseSensitive(item, "name");
@@ -71,18 +73,18 @@ static bool parseKubernetesNode(const cJSON* item, KubernetesNodeDto& node) {
 
     node.name = name->valuestring;
     node.created = static_cast<time_t>(created->valuedouble);
-    node.allocatedPods = allocated_pods->valueint;
-    node.allocatedContainers = allocated_containers->valueint;
-    node.cpuCapacity = static_cast<int64_t>(cpu_capacity->valuedouble);
-    node.cpuUsage = static_cast<int64_t>(cpu_usage->valuedouble);
-    node.memoryCapacity = static_cast<int64_t>(memory_capacity->valuedouble);
-    node.memoryUsage = static_cast<int64_t>(memory_usage->valuedouble);
+    node.allocated_pods = allocated_pods->valueint;
+    node.allocated_containers = allocated_containers->valueint;
+    node.cpu_capacity = static_cast<int64_t>(cpu_capacity->valuedouble);
+    node.cpu_usage = static_cast<int64_t>(cpu_usage->valuedouble);
+    node.memory_capacity = static_cast<int64_t>(memory_capacity->valuedouble);
+    node.memory_usage = static_cast<int64_t>(memory_usage->valuedouble);
 
     return true;
 }
 
 // Helper function to parse KubernetesJobDto
-static bool parseKubernetesJob(const cJSON* item, KubernetesJobDto& job) {
+static bool parse_kubernetes_job(const cJSON* item, KubernetesJobDto& job) {
     if (!cJSON_IsObject(item)) return false;
 
     const cJSON* name = cJSON_GetObjectItemCaseSensitive(item, "name");
@@ -110,7 +112,7 @@ static bool parseKubernetesJob(const cJSON* item, KubernetesJobDto& job) {
         job.completed = 0;
     }
 
-    job.isCompleted = cJSON_IsNumber(completed);
+    job.is_completed = cJSON_IsNumber(completed);
     job.succeeded = succeeded->valueint;
     job.failed = failed->valueint;
 
@@ -118,7 +120,7 @@ static bool parseKubernetesJob(const cJSON* item, KubernetesJobDto& job) {
 }
 
 // Helper function to parse ContainerStartsStatsDto
-static bool parseContainerStarts(const cJSON* item, ContainerStartsStatsDto& containerStarts) {
+static bool parse_container_starts(const cJSON* item, ContainerStartsStatsDto& containerStarts) {
     if (!cJSON_IsObject(item)) return false;
 
     const cJSON* day = cJSON_GetObjectItemCaseSensitive(item, "day");
@@ -134,77 +136,72 @@ static bool parseContainerStarts(const cJSON* item, ContainerStartsStatsDto& con
     return true;
 }
 
-bool StatsDto::fromJson(const char* jsonString, StatsDto& stats) {
-    bool success = false;
-    cJSON* root = cJSON_Parse(jsonString);
-    if (root == nullptr) {
+bool StatsDto::from_json(const char* json_string, StatsDto& stats) {
+    cJSON_Data root = { cJSON_Parse(json_string) };
+    if (*root == nullptr) {
         // Parsing failed
         return false;
     }
 
-    const cJSON* container_starts = cJSON_GetObjectItemCaseSensitive(root, "container_starts");
-    const cJSON* last_builds = cJSON_GetObjectItemCaseSensitive(root, "last_builds");
-    const cJSON* last_failed_builds = cJSON_GetObjectItemCaseSensitive(root, "last_failed_builds");
-    const cJSON* nodes = cJSON_GetObjectItemCaseSensitive(root, "nodes");
-    const cJSON* last_failed_jobs = cJSON_GetObjectItemCaseSensitive(root, "last_failed_jobs");
 
     // Parse container_starts
-    if (container_starts && !parseContainerStarts(container_starts, stats.containerStarts)) {
-        goto end;
+    const cJSON* container_starts = cJSON_GetObjectItemCaseSensitive(*root, "container_starts");
+    if (container_starts && !parse_container_starts(container_starts, stats.container_starts)) {
+        return false;
     }
 
     // Parse last_builds
+    const cJSON* last_builds = cJSON_GetObjectItemCaseSensitive(*root, "last_builds");
     if (last_builds && cJSON_IsArray(last_builds)) {
-        cJSON* build = nullptr;
+        cJSON* build;
         cJSON_ArrayForEach(build, last_builds) {
             JenkinsBuildDto dto;
-            if (!parseJenkinsBuild(build, dto)) {
-                goto end;
+            if (!parse_jenkins_build(build, dto)) {
+                return false;
             }
-            stats.lastBuilds.push_back(dto);
+            stats.last_builds.push_back(dto);
         }
     }
 
     // Parse last_failed_builds
+    const cJSON* last_failed_builds = cJSON_GetObjectItemCaseSensitive(*root, "last_failed_builds");
     if (last_failed_builds && cJSON_IsArray(last_failed_builds)) {
-        cJSON* build = nullptr;
+        cJSON* build;
         cJSON_ArrayForEach(build, last_failed_builds) {
             JenkinsBuildDto dto;
-            if (!parseJenkinsBuild(build, dto)) {
-                goto end;
+            if (!parse_jenkins_build(build, dto)) {
+                return false;
             }
-            stats.lastFailedBuilds.push_back(dto);
+            stats.last_failed_builds.push_back(dto);
         }
     }
 
     // Parse nodes
+    const cJSON* nodes = cJSON_GetObjectItemCaseSensitive(*root, "nodes");
     if (nodes && cJSON_IsArray(nodes)) {
-        cJSON* node = nullptr;
+        cJSON* node;
         cJSON_ArrayForEach(node, nodes) {
             KubernetesNodeDto dto;
-            if (!parseKubernetesNode(node, dto)) {
-                goto end;
+            if (!parse_kubernetes_node(node, dto)) {
+                return false;
             }
             stats.nodes.push_back(dto);
         }
     }
 
     // Parse last_failed_jobs
+    const cJSON* last_failed_jobs = cJSON_GetObjectItemCaseSensitive(*root, "last_failed_jobs");
     if (last_failed_jobs && cJSON_IsArray(last_failed_jobs)) {
-        cJSON* job = nullptr;
+        cJSON* job;
         cJSON_ArrayForEach(job, last_failed_jobs) {
             KubernetesJobDto dto;
-            if (!parseKubernetesJob(job, dto)) {
-                goto end;
+            if (!parse_kubernetes_job(job, dto)) {
+                return false;
             }
-            stats.lastFailedJobs.push_back(dto);
+            stats.last_failed_jobs.push_back(dto);
         }
     }
 
     // If all parsing steps are successful
-    success = true;
-
-end:
-    cJSON_Delete(root);
-    return success;
+    return true;
 }

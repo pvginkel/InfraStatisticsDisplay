@@ -2,8 +2,6 @@
 
 #include "lv_support.h"
 
-#include "dithering.h"
-
 static float fast_rsqrt(float x) {
     float xhalf = 0.5f * x;
     int i = *(int*)&x;
@@ -86,4 +84,28 @@ lv_color32_t lv_color32_make(uint8_t red, uint8_t green, uint8_t blue) {
     ret.ch.alpha = 0xff;
 
     return ret;
+}
+
+void lv_obj_set_grid_cell(lv_obj_t* obj, lv_grid_align_t x_align, uint8_t col_pos, lv_grid_align_t y_align, uint8_t row_pos) {
+    lv_obj_set_grid_cell(obj, x_align, col_pos, 1, y_align, row_pos, 1);
+}
+
+void lv_obj_set_bounds(lv_obj_t* obj, lv_coord_t x, lv_coord_t y, lv_coord_t width, lv_coord_t height, lv_text_align_t align) {
+    lv_obj_set_size(obj, width, height);
+
+    switch (align) {
+    case LV_TEXT_ALIGN_LEFT:
+        lv_obj_set_x(obj, x);
+        break;
+
+    case LV_TEXT_ALIGN_CENTER:
+        lv_obj_set_x(obj, x - width / 2);
+        break;
+
+    case LV_TEXT_ALIGN_RIGHT:
+        lv_obj_set_x(obj, x - width);
+        break;
+    }
+
+    lv_obj_set_y(obj, y - height / 2);
 }
