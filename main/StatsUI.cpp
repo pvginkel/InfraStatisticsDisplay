@@ -15,6 +15,10 @@ void StatsUI::do_begin() {
 }
 
 void StatsUI::do_render(lv_obj_t* parent) {
+	if (!_stats_valid) {
+		return;
+	}
+
 	auto outer_cont = lv_obj_create(parent);
 	reset_outer_container_styles(outer_cont);
 	static lv_coord_t outer_cont_col_desc[] = { LV_GRID_FR(1), LV_GRID_TEMPLATE_LAST };
