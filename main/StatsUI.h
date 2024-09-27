@@ -17,7 +17,7 @@ class StatsUI : public LvglUI {
 
     StatsDto _stats;
 #ifndef LV_SIMULATOR
-    time_t _last_update = 0;
+    time_t _next_update = 0;
 #endif
 
 public:

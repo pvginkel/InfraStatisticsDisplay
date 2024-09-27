@@ -17,14 +17,30 @@ void StatsUI::do_begin() { LvglUI::do_begin(); }
 void StatsUI::do_update() {
     auto current_time = time(nullptr);
 
-    if (current_time != _last_update) {
-        auto time_info = localtime(&current_time);
+    if (_next_update == 0 || current_time >= _next_update) {
+        if (_next_update == 0) {
+            // Get the time_t for the start of the hour.
+            auto start_hour_time_info = *localtime(&current_time);
+            start_hour_time_info.tm_min = 0;
+            start_hour_time_info.tm_sec = 0;
+            auto start_hour_time = mktime(&start_hour_time_info);
 
-        if (_last_update == 0 || time_info->tm_min % CONFIG_INFRA_STATISTICS_UPDATE_INTERVAL == 0) {
-            update_stats();
+            // Calculate the number of seconds from the current time to
+            // the next update interval.
+            auto diff = current_time - start_hour_time;
+            auto rounded_up =
+                ((diff + CONFIG_INFRA_STATISTICS_UPDATE_INTERVAL - 1) / CONFIG_INFRA_STATISTICS_UPDATE_INTERVAL) *
+                CONFIG_INFRA_STATISTICS_UPDATE_INTERVAL;
+
+            // Set the next update to the correct time. After the initial
+            // calculation, every other update will be calculated simply
+            // by adding the update interval.
+            _next_update = start_hour_time + rounded_up;
+        } else {
+            _next_update += CONFIG_INFRA_STATISTICS_UPDATE_INTERVAL;
         }
 
-        _last_update = current_time;
+        update_stats();
     }
 }
 

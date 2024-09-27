@@ -6,6 +6,8 @@
 
 #include "cJSON.h"
 
+LOG_TAG(StatsDto);
+
 static bool parse_jenkins_build_status(const char* statusStr, JenkinsBuildStatus& status) {
     if (strcmp(statusStr, "ABORTED") == 0) {
         status = JenkinsBuildStatus::Aborted;
@@ -18,6 +20,7 @@ static bool parse_jenkins_build_status(const char* statusStr, JenkinsBuildStatus
     } else if (strcmp(statusStr, "UNSTABLE") == 0) {
         status = JenkinsBuildStatus::Unstable;
     } else {
+        ESP_LOGE(TAG, "Failed to start Jenkins build status '%s'", statusStr);
         return false;
     }
 
@@ -26,8 +29,10 @@ static bool parse_jenkins_build_status(const char* statusStr, JenkinsBuildStatus
 
 // Helper function to parse JenkinsBuildDto
 static bool parse_jenkins_build(const cJSON* item, JenkinsBuildDto& build) {
-    if (!cJSON_IsObject(item))
+    if (!cJSON_IsObject(item)) {
+        ESP_LOGE(TAG, "Jenkins build is not an object");
         return false;
+    }
 
     const cJSON* name = cJSON_GetObjectItemCaseSensitive(item, "name");
     const cJSON* number = cJSON_GetObjectItemCaseSensitive(item, "number");
@@ -35,6 +40,7 @@ static bool parse_jenkins_build(const cJSON* item, JenkinsBuildDto& build) {
     const cJSON* status = cJSON_GetObjectItemCaseSensitive(item, "status");
 
     if (!cJSON_IsString(name) || !cJSON_IsNumber(number) || !cJSON_IsNumber(execution) || !cJSON_IsString(status)) {
+        ESP_LOGE(TAG, "Some parameters of Jenkins build are not found or of the expected type");
         return false;
     }
 
@@ -50,8 +56,10 @@ static bool parse_jenkins_build(const cJSON* item, JenkinsBuildDto& build) {
 
 // Helper function to parse KubernetesNodeDto
 static bool parse_kubernetes_node(const cJSON* item, KubernetesNodeDto& node) {
-    if (!cJSON_IsObject(item))
+    if (!cJSON_IsObject(item)) {
+        ESP_LOGE(TAG, "Kubernetes node is not an object");
         return false;
+    }
 
     const cJSON* name = cJSON_GetObjectItemCaseSensitive(item, "name");
     const cJSON* created = cJSON_GetObjectItemCaseSensitive(item, "created");
@@ -65,6 +73,7 @@ static bool parse_kubernetes_node(const cJSON* item, KubernetesNodeDto& node) {
     if (!cJSON_IsString(name) || !cJSON_IsNumber(created) || !cJSON_IsNumber(allocated_pods) ||
         !cJSON_IsNumber(allocated_containers) || !cJSON_IsNumber(cpu_capacity) || !cJSON_IsNumber(cpu_usage) ||
         !cJSON_IsNumber(memory_capacity) || !cJSON_IsNumber(memory_usage)) {
+        ESP_LOGE(TAG, "Some parameters of Kubernetes node are not found or of the expected type");
         return false;
     }
 
@@ -82,8 +91,10 @@ static bool parse_kubernetes_node(const cJSON* item, KubernetesNodeDto& node) {
 
 // Helper function to parse KubernetesJobDto
 static bool parse_kubernetes_job(const cJSON* item, KubernetesJobDto& job) {
-    if (!cJSON_IsObject(item))
+    if (!cJSON_IsObject(item)) {
+        ESP_LOGE(TAG, "Kubernetes job is not an object");
         return false;
+    }
 
     const cJSON* name = cJSON_GetObjectItemCaseSensitive(item, "name");
     const cJSON* ns = cJSON_GetObjectItemCaseSensitive(item, "namespace");
@@ -95,6 +106,7 @@ static bool parse_kubernetes_job(const cJSON* item, KubernetesJobDto& job) {
     if (!cJSON_IsString(name) || !cJSON_IsString(ns) || !cJSON_IsNumber(created) ||
         !(cJSON_IsNumber(completed) || cJSON_IsNull(completed)) || !cJSON_IsNumber(succeeded) ||
         !cJSON_IsNumber(failed)) {
+        ESP_LOGE(TAG, "Some parameters of Kubernetes job are not found or of the expected type");
         return false;
     }
 
@@ -117,13 +129,16 @@ static bool parse_kubernetes_job(const cJSON* item, KubernetesJobDto& job) {
 
 // Helper function to parse ContainerStartsStatsDto
 static bool parse_container_starts(const cJSON* item, ContainerStartsStatsDto& containerStarts) {
-    if (!cJSON_IsObject(item))
+    if (!cJSON_IsObject(item)) {
+        ESP_LOGE(TAG, "Container stats is not an object");
         return false;
+    }
 
     const cJSON* day = cJSON_GetObjectItemCaseSensitive(item, "day");
     const cJSON* week = cJSON_GetObjectItemCaseSensitive(item, "week");
 
     if (!cJSON_IsNumber(day) || !cJSON_IsNumber(week)) {
+        ESP_LOGE(TAG, "Some parameters of Container stats are not found or of the expected type");
         return false;
     }
 
@@ -146,6 +161,7 @@ bool StatsDto::from_json(const char* json_string, StatsDto& stats) {
 
     cJSON_Data root = {cJSON_Parse(json_string)};
     if (*root == nullptr) {
+        ESP_LOGE(TAG, "Failed to parse raw JSON string");
         // Parsing failed
         return false;
     }
