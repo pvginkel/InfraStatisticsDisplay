@@ -1,6 +1,6 @@
 #pragma once
 
-enum class JenkinsBuildStatus : int8_t { Aborted, Failure, NotBuilt, Success, Unstable };
+enum class JenkinsBuildStatus : int8_t { InProgress, Aborted, Failure, NotBuilt, Success, Unstable };
 
 struct JenkinsBuildDto {
     string name;

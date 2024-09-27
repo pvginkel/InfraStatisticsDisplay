@@ -9,7 +9,9 @@
 LOG_TAG(StatsDto);
 
 static bool parse_jenkins_build_status(const char* statusStr, JenkinsBuildStatus& status) {
-    if (strcmp(statusStr, "ABORTED") == 0) {
+    if (strcmp(statusStr, "IN_PROGRESS") == 0) {
+        status = JenkinsBuildStatus::InProgress;
+    } else if (strcmp(statusStr, "ABORTED") == 0) {
         status = JenkinsBuildStatus::Aborted;
     } else if (strcmp(statusStr, "FAILURE") == 0) {
         status = JenkinsBuildStatus::Failure;
