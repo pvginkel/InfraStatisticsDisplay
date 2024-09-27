@@ -77,8 +77,9 @@ void Application::begin_wifi_available() {
         tm time_info;
         localtime_r(&tv->tv_sec, &time_info);
 
-        ESP_LOGI(TAG, "Time synchronized to %d-%d-%d %d:%02d:%02d", time_info.tm_year, time_info.tm_mon,
-                 time_info.tm_mday, time_info.tm_hour, time_info.tm_min, time_info.tm_sec);
+        char time_str[64];
+        strftime(time_str, sizeof(time_str), "%Y-%m-%d %H:%M:%S", &time_info);
+        ESP_LOGI(TAG, "Time synchronized to %s", time_str);
 
         _instance->_queue.enqueue([]() { _instance->begin_sntp_synced(); });
     };
