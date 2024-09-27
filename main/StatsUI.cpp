@@ -319,9 +319,9 @@ void StatsUI::create_job(lv_obj_t* parent, Job& job, uint8_t col, uint8_t row) {
     if (job_time_info.tm_year != now_time_info.tm_year) {
         time_str = format("%d", job_time_info.tm_year);
     } else if (!(job_time_info.tm_mon == now_time_info.tm_mon && job_time_info.tm_mday == now_time_info.tm_mday)) {
-        time_str = format("%d-%d", job_time_info.tm_mday, job_time_info.tm_mon);
+        time_str = format("%d-%d", job_time_info.tm_mday, job_time_info.tm_mon + 1);
     } else {
-        time_str = format("%d:%02d", now_time_info.tm_hour, now_time_info.tm_min);
+        time_str = format("%d:%02d", job_time_info.tm_hour, job_time_info.tm_min);
     }
 
     auto label = lv_label_create(cont);
