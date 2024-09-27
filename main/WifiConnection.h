@@ -6,16 +6,16 @@ struct WifiConnectionState {
 };
 
 class WifiConnection {
-    Queue *_synchronizationQueue;
+    Queue *_synchronization_queue;
     EventGroupHandle_t _wifiEventGroup;
-    Callback<WifiConnectionState> _stateChanged;
+    Callback<WifiConnectionState> _state_changed;
     int _attempt;
 
-    void eventHandler(esp_event_base_t eventBase, int32_t eventId, void *eventData);
+    void event_handler(esp_event_base_t eventBase, int32_t eventId, void *eventData);
 
 public:
     WifiConnection(Queue *synchronizationQueue);
 
     void begin();
-    void onStateChanged(function<void(WifiConnectionState)> func) { _stateChanged.add(func); }
+    void on_state_changed(function<void(WifiConnectionState)> func) { _state_changed.add(func); }
 };

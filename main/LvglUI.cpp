@@ -2,29 +2,21 @@
 
 #include "LvglUI.h"
 
-LOG_TAG(LvglUI);
-
 constexpr auto CIRCLES = 11;
 constexpr auto CIRCLES_RADIUS = 10;
 constexpr auto CIRCLE_RADIUS = 4;
 constexpr auto PADDING = 20;
-
-critical_value<uint32_t> LvglUI::_current_cookie(0);
-
-bool LvglUICookie::is_valid() const { return LvglUI::_current_cookie.get() == _cookie; }
 
 LvglUI::~LvglUI() { remove_loading_ui(); }
 
 void LvglUI::begin() { do_begin(); }
 
 void LvglUI::render() {
-    _current_cookie.update([](auto p) { return p + 1; });
-
     auto parent = lv_scr_act();
 
     lv_obj_clean(parent);
 
-    lv_theme_default_init(nullptr, lv_color_black(), lv_color_black(), LV_THEME_DEFAULT_DARK, &lv_font_montserrat_24);
+    lv_theme_default_init(nullptr, lv_color_black(), lv_color_black(), LV_THEME_DEFAULT_DARK, NORMAL_FONT);
 
     lv_obj_set_style_bg_color(parent, lv_color_white(), LV_PART_MAIN);
 
@@ -89,8 +81,8 @@ void LvglUI::reset_outer_container_styles(lv_obj_t* cont) {
     lv_obj_set_size(cont, LV_PCT(100), LV_PCT(100));
     lv_obj_set_style_pad_all(cont, lv_dpx(PADDING), LV_PART_MAIN);
 
-    //lv_obj_set_style_border_width(cont, lv_dpx(2), LV_PART_MAIN);
-    //lv_obj_set_style_border_color(cont, lv_color_make(255, 0, 0), LV_PART_MAIN);
+    // lv_obj_set_style_border_width(cont, lv_dpx(2), LV_PART_MAIN);
+    // lv_obj_set_style_border_color(cont, lv_color_make(255, 0, 0), LV_PART_MAIN);
 }
 
 void LvglUI::reset_layout_container_styles(lv_obj_t* cont) {
@@ -98,8 +90,8 @@ void LvglUI::reset_layout_container_styles(lv_obj_t* cont) {
     lv_obj_set_style_pad_all(cont, 0, LV_PART_MAIN);
     lv_obj_set_size(cont, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
 
-    //lv_obj_set_style_border_width(cont, lv_dpx(2), LV_PART_MAIN);
-    //lv_obj_set_style_border_color(cont, lv_color_make(0, 255, 0), LV_PART_MAIN);
+    // lv_obj_set_style_border_width(cont, lv_dpx(2), LV_PART_MAIN);
+    // lv_obj_set_style_border_color(cont, lv_color_make(0, 255, 0), LV_PART_MAIN);
 }
 
 void LvglUI::update() { do_update(); }

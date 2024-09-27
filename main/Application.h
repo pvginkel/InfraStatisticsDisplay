@@ -1,40 +1,36 @@
 #pragma once
 
-#include "ESP_Panel.h"
 #include "LoadingUI.h"
 #include "LogManager.h"
-#include "MQTTConnection.h"
-#include "MotionSensor.h"
 #include "OTAManager.h"
 #include "Queue.h"
-#include "ThermostatUI.h"
+#include "StatsDto.h"
+#include "StatsUI.h"
 #include "WifiConnection.h"
 
 class Application {
-    ESP_Panel& _panel;
-    lv_obj_t* _parent;
-    WifiConnection _wifiConnection;
-    MQTTConnection* _mqttConnection;
-    OTAManager _otaManager;
-    LoadingUI* _loadingUI;
-    ThermostatUI* _thermostatUI;
+    static Application* _instance;
+    Device* _device;
+    WifiConnection _wifi_connection;
+    OTAManager _ota_manager;
+    LoadingUI* _loading_ui;
+    StatsUI* _stats_ui;
     Queue _queue;
     DeviceConfiguration _configuration;
-    MotionSensor _motionSensor;
-    LogManager _logManager;
+    LogManager _log_manager;
 
 public:
-    Application(ESP_Panel& panel);
+    Application(Device* device);
 
-    void begin(lv_disp_t* disp, bool silent);
+    void begin(bool silent);
     void process();
 
 private:
-    void setupI2C();
-    void setupFlash();
-    void begin(bool silent);
-    void beginWifi();
-    void beginWifiAvailable();
-    void beginMQTT();
-    void beginUI();
+    void setup_flash();
+    void do_begin(bool silent);
+    void begin_wifi();
+    void begin_wifi_available();
+    void begin_sntp_synced();
+    void begin_after_initialization();
+    void begin_ui();
 };

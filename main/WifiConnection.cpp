@@ -5,7 +5,7 @@
 static const char *TAG = "WifiConnection";
 
 WifiConnection::WifiConnection(Queue *synchronizationQueue)
-    : _synchronizationQueue(synchronizationQueue), _attempt(0) {}
+    : _synchronization_queue(synchronizationQueue), _attempt(0) {}
 
 void WifiConnection::begin() {
     _wifiEventGroup = xEventGroupCreate();
@@ -24,14 +24,14 @@ void WifiConnection::begin() {
     ESP_ERROR_CHECK(esp_event_handler_instance_register(
         WIFI_EVENT, ESP_EVENT_ANY_ID,
         [](auto eventHandlerArg, auto eventBase, auto eventId, auto eventData) {
-            ((WifiConnection *)eventHandlerArg)->eventHandler(eventBase, eventId, eventData);
+            ((WifiConnection *)eventHandlerArg)->event_handler(eventBase, eventId, eventData);
         },
         this, &instanceAnyId));
 
     ESP_ERROR_CHECK(esp_event_handler_instance_register(
         IP_EVENT, IP_EVENT_STA_GOT_IP,
         [](auto eventHandlerArg, auto eventBase, auto eventId, auto eventData) {
-            ((WifiConnection *)eventHandlerArg)->eventHandler(eventBase, eventId, eventData);
+            ((WifiConnection *)eventHandlerArg)->event_handler(eventBase, eventId, eventData);
         },
         this, &instanceGotIp));
 
@@ -64,7 +64,7 @@ void WifiConnection::begin() {
     ESP_LOGI(TAG, "Finished setting up WiFi");
 }
 
-void WifiConnection::eventHandler(esp_event_base_t eventBase, int32_t eventId, void *eventData) {
+void WifiConnection::event_handler(esp_event_base_t eventBase, int32_t eventId, void *eventData) {
     if (eventBase == WIFI_EVENT && eventId == WIFI_EVENT_STA_START) {
         ESP_LOGI(TAG, "Connecting to AP, attempt %d", _attempt + 1);
         esp_wifi_connect();
@@ -80,13 +80,13 @@ void WifiConnection::eventHandler(esp_event_base_t eventBase, int32_t eventId, v
             ESP_LOGI(TAG, "Retrying...");
             esp_wifi_connect();
         } else {
-            _stateChanged.queue(_synchronizationQueue, {.connected = false, .errorReason = event->reason});
+            _state_changed.queue(_synchronization_queue, {.connected = false, .errorReason = event->reason});
         }
     } else if (eventBase == IP_EVENT && eventId == IP_EVENT_STA_GOT_IP) {
         auto event = (ip_event_got_ip_t *)eventData;
 
         ESP_LOGI(TAG, "Got ip:" IPSTR, IP2STR(&event->ip_info.ip));
 
-        _stateChanged.queue(_synchronizationQueue, {.connected = true, .errorReason = 0});
+        _state_changed.queue(_synchronization_queue, {.connected = true, .errorReason = 0});
     }
 }

@@ -1,14 +1,14 @@
 ﻿#pragma once
 
 extern "C" {
-    // Use the script in the tools folder to update the fonts.
+// Use the script in the tools folder to update the fonts.
 
-    LV_FONT_DECLARE(lv_font_roboto_12);
-    LV_FONT_DECLARE(lv_font_roboto_18);
-    LV_FONT_DECLARE(lv_font_roboto_24);
-    LV_FONT_DECLARE(lv_font_roboto_28);
-    LV_FONT_DECLARE(lv_font_roboto_40);
-    LV_FONT_DECLARE(lv_font_roboto_100_digits);
+LV_FONT_DECLARE(lv_font_roboto_12);
+LV_FONT_DECLARE(lv_font_roboto_18);
+LV_FONT_DECLARE(lv_font_roboto_24);
+LV_FONT_DECLARE(lv_font_roboto_28);
+LV_FONT_DECLARE(lv_font_roboto_40);
+LV_FONT_DECLARE(lv_font_roboto_100_digits);
 }
 
 static constexpr auto XSMALL_FONT = &lv_font_roboto_24;
@@ -16,23 +16,8 @@ static constexpr auto SMALL_FONT = &lv_font_roboto_28;
 static constexpr auto NORMAL_FONT = &lv_font_roboto_40;
 static constexpr auto LARGE_DIGITS_FONT = &lv_font_roboto_100_digits;
 
-class LvglUI;
-
-class LvglUICookie {
-    uint32_t _cookie;
-
-public:
-    LvglUICookie(uint32_t cookie) : _cookie(cookie) {}
-
-    bool is_valid() const;
-};
-
 class LvglUI {
-    static critical_value<uint32_t> _current_cookie;
-
     vector<lv_obj_t*> _loading_circles;
-
-    friend LvglUICookie;
 
 public:
     LvglUI() {}
@@ -58,5 +43,4 @@ protected:
     void remove_loading_ui();
     void reset_outer_container_styles(lv_obj_t* cont);
     void reset_layout_container_styles(lv_obj_t* cont);
-    LvglUICookie get_cookie() const { return { _current_cookie.get() }; }
 };

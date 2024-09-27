@@ -13,21 +13,21 @@ class LogManager {
     static LogManager* _instance;
     static char* _buffer;
 
-    vprintf_like_t _defaultLogHandler;
+    vprintf_like_t _default_log_handler;
     Mutex _mutex;
     vector<Message> _messages;
     const DeviceConfiguration* _configuration;
-    esp_timer_handle_t _logTimer;
+    esp_timer_handle_t _log_timer;
 
-    static int logHandler(const char* message, va_list va);
+    static int log_handler(const char* message, va_list va);
 
 public:
     LogManager();
 
     void begin();
-    void setConfiguration(const DeviceConfiguration& configuration);
+    void set_configuration(const DeviceConfiguration& configuration);
 
 private:
     void uploadLogs();
-    void startTimer();
+    void start_timer();
 };

@@ -10,11 +10,11 @@ static const char* TAG = "LogManager";
 LogManager* LogManager::_instance = nullptr;
 char* LogManager::_buffer = new char[BUFFER_SIZE];
 
-int LogManager::logHandler(const char* message, va_list va) {
+int LogManager::log_handler(const char* message, va_list va) {
     va_list vaCopy;
     va_copy(vaCopy, va);
 
-    _instance->_defaultLogHandler(message, vaCopy);
+    _instance->_default_log_handler(message, vaCopy);
 
     va_end(vaCopy);
 
@@ -30,17 +30,17 @@ int LogManager::logHandler(const char* message, va_list va) {
         }
 
         if (startTimer) {
-            _instance->startTimer();
+            _instance->start_timer();
         }
 
         return result;
     });
 }
 
-LogManager::LogManager() : _defaultLogHandler(nullptr), _configuration(nullptr) { _instance = this; }
+LogManager::LogManager() : _default_log_handler(nullptr), _configuration(nullptr) { _instance = this; }
 
 void LogManager::begin() {
-    _defaultLogHandler = esp_log_set_vprintf(logHandler);
+    _default_log_handler = esp_log_set_vprintf(log_handler);
 
     const esp_timer_create_args_t displayOffTimerArgs = {
         .callback = [](void* arg) { ((LogManager*)arg)->uploadLogs(); },
@@ -48,7 +48,7 @@ void LogManager::begin() {
         .name = "logManagerTimer",
     };
 
-    ESP_ERROR_CHECK(esp_timer_create(&displayOffTimerArgs, &_logTimer));
+    ESP_ERROR_CHECK(esp_timer_create(&displayOffTimerArgs, &_log_timer));
 
     esp_register_shutdown_handler([]() {
         if (_instance) {
@@ -59,7 +59,7 @@ void LogManager::begin() {
     });
 }
 
-void LogManager::setConfiguration(const DeviceConfiguration& configuration) {
+void LogManager::set_configuration(const DeviceConfiguration& configuration) {
     auto startTimer = _mutex.with<bool>([this, &configuration]() {
         _configuration = &configuration;
 
@@ -67,7 +67,7 @@ void LogManager::setConfiguration(const DeviceConfiguration& configuration) {
     });
 
     if (startTimer) {
-        this->startTimer();
+        this->start_timer();
     }
 }
 
@@ -104,7 +104,6 @@ void LogManager::uploadLogs() {
 
             cJSON_AddStringToObject(root, "message", message.buffer);
             cJSON_AddNumberToObject(root, "relative_time", millis - message.time);
-            cJSON_AddStringToObject(root, "entity_id", _configuration->getDeviceEntityId().c_str());
 
             auto json = cJSON_PrintUnformatted(root);
             cJSON_Delete(root);
@@ -129,4 +128,4 @@ void LogManager::uploadLogs() {
     }
 }
 
-void LogManager::startTimer() { ESP_ERROR_CHECK(esp_timer_start_once(_logTimer, ESP_TIMER_MS(CONFIG_LOG_INTERVAL))); }
+void LogManager::start_timer() { ESP_ERROR_CHECK(esp_timer_start_once(_log_timer, ESP_TIMER_MS(CONFIG_LOG_INTERVAL))); }

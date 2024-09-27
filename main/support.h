@@ -47,32 +47,6 @@ int hextoi(char c);
 
 #define LOG_TAG(v) static const char* TAG = #v
 
-#ifdef LV_SIMULATOR
-#define taskENTER_CRITICAL()
-#define taskEXIT_CRITICAL()
-#endif
-
-template <typename T>
-class critical_value {
-    T _value;
-
-public:
-    critical_value(T value) : _value(value) {}
-
-    T get() {
-        taskENTER_CRITICAL();
-        T value = _value;
-        taskEXIT_CRITICAL();
-        return _value;
-    }
-
-    void update(function<T(T)> func) {
-        taskENTER_CRITICAL();
-        _value = func(_value);
-        taskEXIT_CRITICAL();
-    }
-};
-
 class cJSON_Data {
     cJSON* _data;
 

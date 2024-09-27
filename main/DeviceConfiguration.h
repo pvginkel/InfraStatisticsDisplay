@@ -4,10 +4,9 @@ class DeviceConfiguration {
 private:
     static constexpr auto DEFAULT_ENABLE_OTA = true;
 
-    string _deviceName;
-    string _deviceEntityId;
+    string _device_name;
     string _endpoint;
-    bool _enableOTA;
+    bool _enable_ota;
 
 public:
     DeviceConfiguration();
@@ -18,8 +17,7 @@ public:
 
     esp_err_t load();
 
-    const string& getEndpoint() const { return _endpoint; }
-    const string& getDeviceName() const { return _deviceName; }
-    const string& getDeviceEntityId() const { return _deviceEntityId; }
-    bool getEnableOTA() const { return _enableOTA; }
+    const string& get_endpoint() const { return _endpoint; }
+    const string& get_device_name() const { return _device_name; }
+    bool get_enable_ota() const { return _enable_ota; }
 };

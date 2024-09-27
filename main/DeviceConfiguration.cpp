@@ -4,7 +4,7 @@
 
 static const char* TAG = "DeviceConfiguration";
 
-DeviceConfiguration::DeviceConfiguration() : _enableOTA(DEFAULT_ENABLE_OTA) {
+DeviceConfiguration::DeviceConfiguration() : _enable_ota(DEFAULT_ENABLE_OTA) {
     uint8_t mac[6];
 
     ESP_ERROR_CHECK(esp_read_mac(mac, ESP_MAC_WIFI_STA));
@@ -18,11 +18,10 @@ esp_err_t DeviceConfiguration::load() {
     auto err = ESP_OK;
     cJSON* root = nullptr;
     cJSON* deviceNameItem = nullptr;
-    cJSON* deviceEntityIdItem = nullptr;
     cJSON* enableOTAItem = nullptr;
 
     esp_http_client_config_t config = {
-        .url = getEndpoint().c_str(),
+        .url = get_endpoint().c_str(),
         .timeout_ms = CONFIG_OTA_RECV_TIMEOUT,
     };
 
@@ -48,18 +47,9 @@ esp_err_t DeviceConfiguration::load() {
         goto end;
     }
 
-    _deviceName = deviceNameItem->valuestring;
+    _device_name = deviceNameItem->valuestring;
 
-    ESP_LOGI(TAG, "Device name: %s", _deviceName.c_str());
-
-    deviceEntityIdItem = cJSON_GetObjectItemCaseSensitive(root, "deviceEntityId");
-    if (!cJSON_IsString(deviceEntityIdItem) || !deviceEntityIdItem->valuestring) {
-        ESP_LOGE(TAG, "Cannot get deviceEntityIdItem property");
-        err = ESP_ERR_INVALID_ARG;
-        goto end;
-    }
-
-    _deviceEntityId = deviceEntityIdItem->valuestring;
+    ESP_LOGI(TAG, "Device name: %s", _device_name.c_str());
 
     enableOTAItem = cJSON_GetObjectItemCaseSensitive(root, "enableOTA");
     if (enableOTAItem != nullptr) {
@@ -69,10 +59,8 @@ esp_err_t DeviceConfiguration::load() {
             goto end;
         }
 
-        _enableOTA = cJSON_IsTrue(enableOTAItem);
+        _enable_ota = cJSON_IsTrue(enableOTAItem);
     }
-
-    ESP_LOGI(TAG, "Device entity ID: %s", _deviceEntityId.c_str());
 
 end:
     if (root) {

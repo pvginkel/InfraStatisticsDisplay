@@ -1,5 +1,9 @@
 ﻿#pragma once
 
+#define MSG_CONNECTING_TO_WIFI "Verbinden met WiFi"
+#define MSG_FAILED_TO_CONNECT "Kan niet verbinden"
+#define MSG_FAILED_TO_RETRIEVE_CONFIGURATION "Kan configuratie niet laden van %s"
+
 #define FA_CUBE "\U0000f1b2"
 #define FA_CUBES "\U0000f1b3"
 #define FA_CALENDAR_WEEK "\U0000f784"

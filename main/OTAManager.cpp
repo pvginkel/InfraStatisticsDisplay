@@ -8,32 +8,32 @@ constexpr auto BUFFER_SIZE = 1024;
 
 static const char *TAG = "OTAManager";
 
-OTAManager::OTAManager() : _updateTimer(nullptr) {}
+OTAManager::OTAManager() : _update_timer(nullptr) {}
 
 void OTAManager::begin() {
     const esp_timer_create_args_t displayOffTimerArgs = {
-        .callback = [](void *arg) { ((OTAManager *)arg)->updateCheck(); },
+        .callback = [](void *arg) { ((OTAManager *)arg)->update_check(); },
         .arg = this,
         .name = "updateTimer",
     };
 
-    ESP_ERROR_CHECK(esp_timer_create(&displayOffTimerArgs, &_updateTimer));
-    ESP_ERROR_CHECK(esp_timer_start_once(_updateTimer, ESP_TIMER_SECONDS(OTA_INITIAL_CHECK_INTERVAL)));
+    ESP_ERROR_CHECK(esp_timer_create(&displayOffTimerArgs, &_update_timer));
+    ESP_ERROR_CHECK(esp_timer_start_once(_update_timer, ESP_TIMER_SECONDS(OTA_INITIAL_CHECK_INTERVAL)));
     ESP_LOGI(TAG, "Started OTA timer");
 }
 
-void OTAManager::updateCheck() {
-    if (installUpdate()) {
+void OTAManager::update_check() {
+    if (install_update()) {
         ESP_LOGI(TAG, "Firmware installed successfully; restarting system");
 
         esp_restart();
         return;
     }
 
-    ESP_ERROR_CHECK(esp_timer_start_once(_updateTimer, ESP_TIMER_SECONDS(CONFIG_OTA_CHECK_INTERVAL)));
+    ESP_ERROR_CHECK(esp_timer_start_once(_update_timer, ESP_TIMER_SECONDS(CONFIG_OTA_CHECK_INTERVAL)));
 }
 
-bool OTAManager::installUpdate() {
+bool OTAManager::install_update() {
     auto firmwareInstalled = false;
     auto otaBusy = false;
 
@@ -163,7 +163,7 @@ end:
     return firmwareInstalled;
 }
 
-bool OTAManager::parseHash(char *buffer, uint8_t *hash) {
+bool OTAManager::parse_hash(char *buffer, uint8_t *hash) {
     for (auto i = 0; i < HASH_LENGTH; i++) {
         auto h = hextoi(buffer[i * 2]);
         auto l = hextoi(buffer[i * 2 + 1]);

@@ -1,12 +1,6 @@
 #pragma once
 
-enum class JenkinsBuildStatus: int8_t {
-    Aborted,
-    Failure,
-    NotBuilt,
-    Success,
-    Unstable
-};
+enum class JenkinsBuildStatus : int8_t { Aborted, Failure, NotBuilt, Success, Unstable };
 
 struct JenkinsBuildDto {
     string name;
@@ -47,6 +41,12 @@ struct StatsDto {
     vector<KubernetesNodeDto> nodes;
     vector<KubernetesJobDto> last_failed_jobs;
     ContainerStartsStatsDto container_starts;
+
+    StatsDto() {}
+    StatsDto(const StatsDto&) = delete;
+    StatsDto& operator=(const StatsDto&) = delete;
+    StatsDto(StatsDto&&) = delete;
+    StatsDto& operator=(StatsDto&&) = delete;
 
     static bool from_json(const char* json_string, StatsDto& stats);
 };

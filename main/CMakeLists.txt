@@ -1,8 +1,7 @@
+FILE(GLOB_RECURSE SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/*.c ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
+
 idf_component_register(
-    SRCS "LogManager.cpp" "Mutex.cpp" "lv_font_roboto_100_digits.c" "lv_font_roboto_40.c" "MotionSensor.cpp"
-    "DeviceConfiguration.cpp" "OTAManager.cpp" "CH422G.cpp" "Queue.cpp" "main.cpp" "Application.cpp" "MQTTConnection.cpp" "support.cpp" "WifiConnection.cpp"
-    "LvglUI.cpp" "Messages.cpp" "LoadingUI.cpp" "ThermostatUI.cpp" "dithering.cpp" "lv_support.cpp"
-    "ESP_Panel.cpp"
+    SRCS ${SOURCES}
     INCLUDE_DIRS "."
 )
 

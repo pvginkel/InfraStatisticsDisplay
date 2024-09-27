@@ -1,7 +1,6 @@
 #include "includes.h"
 
 #include "Application.h"
-#include "ESP_Panel.h"
 
 extern "C" {
 void app_main(void) {
@@ -10,18 +9,16 @@ void app_main(void) {
     const auto resetReason = esp_reset_reason();
     const auto silent = resetReason == ESP_RST_BROWNOUT || resetReason == ESP_RST_WDT;
 
-    ESP_Panel panel;
+    Device device;
 
-    auto display = panel.begin(silent);
+    device.begin();
 
-    Application application(panel);
+    Application application(&device);
 
-    application.begin(display, silent);
+    application.begin(silent);
 
     while (1) {
         application.process();
-
-        panel.process();
     }
 }
 }
