@@ -16,14 +16,24 @@ class StatsUI : public LvglUI {
     };
 
     StatsDto _stats;
-    bool _stats_valid = false;
+#ifndef LV_SIMULATOR
     time_t _last_update = 0;
+#endif
+
+public:
+#ifdef LV_SIMULATOR
+    StatsDto& get_stats() { return _stats; }
+#endif
 
 protected:
     void do_begin() override;
     void do_render(lv_obj_t* parent) override;
+
+#ifndef LV_SIMULATOR
     void do_update() override;
     void update_stats();
+#endif
+
     void create_kubernetes_nodes(lv_obj_t* parent, uint8_t col, uint8_t row);
     void create_kubernetes_node(lv_obj_t* parent, KubernetesNodeDto& node, uint8_t col, uint8_t row);
     void create_statistics(lv_obj_t* parent, uint8_t col, uint8_t row);

@@ -41,7 +41,7 @@ void Application::do_begin(bool silent) {
     _loading_ui = new LoadingUI(silent);
 
     _loading_ui->begin();
-    _loading_ui->set_title(MSG_CONNECTING_TO_WIFI);
+    _loading_ui->set_title(MSG_STARTING);
     _loading_ui->set_state(LoadingUIState::Loading);
     _loading_ui->render();
 

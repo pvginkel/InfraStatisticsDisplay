@@ -12,29 +12,23 @@ LOG_TAG(StatsUI);
 
 void StatsUI::do_begin() { LvglUI::do_begin(); }
 
+#ifndef LV_SIMULATOR
+
 void StatsUI::do_update() {
     auto current_time = time(nullptr);
 
     if (current_time != _last_update) {
-        _last_update = current_time;
-
-#if NDEBUG
-        const auto update_interval = 30 * 60;  // Every 30 minutes
-#else
-        const auto update_interval = 10;  // Every 10 seconds
-#endif
-
         auto time_info = localtime(&current_time);
 
-        if (time_info->tm_sec % update_interval == 0) {
+        if (_last_update == 0 || time_info->tm_min % CONFIG_INFRA_STATISTICS_UPDATE_INTERVAL == 0) {
             update_stats();
         }
+
+        _last_update = current_time;
     }
 }
 
 void StatsUI::update_stats() {
-    _stats_valid = false;
-
     esp_http_client_config_t config = {
         .url = CONFIG_INFRA_STATISTICS_ENDPOINT,
         .timeout_ms = CONFIG_INFRA_STATISTICS_ENDPOINT_RECV_TIMEOUT,
@@ -56,16 +50,12 @@ void StatsUI::update_stats() {
 
     ESP_LOGI(TAG, "Updating screen");
 
-    _stats_valid = true;
-
     render();
 }
 
-void StatsUI::do_render(lv_obj_t* parent) {
-    if (!_stats_valid) {
-        return;
-    }
+#endif
 
+void StatsUI::do_render(lv_obj_t* parent) {
     auto outer_cont = lv_obj_create(parent);
     reset_outer_container_styles(outer_cont);
     static lv_coord_t outer_cont_col_desc[] = {LV_GRID_FR(1), LV_GRID_TEMPLATE_LAST};
@@ -102,7 +92,7 @@ void StatsUI::create_kubernetes_nodes(lv_obj_t* parent, uint8_t col, uint8_t row
     static lv_coord_t top_outer_cont_row_desc[] = {LV_GRID_FR(1), LV_GRID_TEMPLATE_LAST};
     lv_obj_set_grid_dsc_array(nodes_cont, top_outer_cont_col_desc, top_outer_cont_row_desc);
     lv_obj_set_grid_cell(nodes_cont, LV_GRID_ALIGN_STRETCH, col, LV_GRID_ALIGN_START, row);
-    lv_obj_set_style_pad_ver(nodes_cont, lv_dpx(20), LV_PART_MAIN);
+    lv_obj_set_style_pad_ver(nodes_cont, lv_dpx(26), LV_PART_MAIN);
 
     for (size_t i = 0; i < node_count; i++) {
         create_kubernetes_node(nodes_cont, _stats.nodes[i], i, 0);
@@ -119,7 +109,7 @@ void StatsUI::create_kubernetes_node(lv_obj_t* parent, KubernetesNodeDto& node, 
     lv_obj_set_grid_dsc_array(circle_cont, cont_col_desc, cont_row_desc);
     lv_obj_set_size(circle_cont, lv_dpx(230), lv_dpx(230));
     lv_obj_set_style_radius(circle_cont, LV_RADIUS_CIRCLE, LV_PART_MAIN);
-    lv_obj_set_style_border_width(circle_cont, lv_dpx(5), LV_PART_MAIN);
+    lv_obj_set_style_border_width(circle_cont, lv_dpx(6), LV_PART_MAIN);
     lv_obj_set_style_border_color(circle_cont, lv_color_black(), LV_PART_MAIN);
     lv_obj_set_style_bg_opa(circle_cont, 0, LV_PART_MAIN);
 
@@ -257,7 +247,7 @@ void StatsUI::create_failed_jobs(lv_obj_t* parent, uint8_t col, uint8_t row) {
                           move(format("%s (%s)", job.name.c_str(), job.ns.c_str())), job.created);
     }
 
-    sort(jobs.begin(), jobs.end(), [](const Job& a, const Job& b) { return a.time < b.time; });
+    sort(jobs.begin(), jobs.end(), [](const Job& a, const Job& b) { return a.time > b.time; });
 
     create_jobs(parent, jobs, col, row);
 }

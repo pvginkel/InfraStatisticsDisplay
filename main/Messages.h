@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#define MSG_CONNECTING_TO_WIFI "Verbinden met WiFi"
+#define MSG_STARTING "Opstarten..."
 #define MSG_FAILED_TO_CONNECT "Kan niet verbinden"
 #define MSG_FAILED_TO_RETRIEVE_CONFIGURATION "Kan configuratie niet laden van %s"
 

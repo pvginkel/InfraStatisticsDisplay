@@ -29,6 +29,10 @@ menu "Device Configuration"
         int "Infra statistics endpoint receive timeout in ms"
         default 30000
 
+    config INFRA_STATISTICS_UPDATE_INTERVAL
+        int "Update interval of the statistics in minutes from the hour"
+        default 30
+
 endmenu
 
 menu "OTA Configuration"
