@@ -139,7 +139,7 @@ void StatsUI::create_kubernetes_node(lv_obj_t* parent, KubernetesNodeDto& node, 
 
     auto cpu_icon_label = lv_label_create(resources_row);
     lv_label_set_text(cpu_icon_label, FA_MICROCHIP);
-    lv_obj_set_style_text_font(cpu_icon_label, XSMALL_FONT, LV_PART_MAIN);
+    lv_obj_set_style_text_font(cpu_icon_label, XSMALL_ICONS_FONT, LV_PART_MAIN);
     lv_obj_set_grid_cell(cpu_icon_label, LV_GRID_ALIGN_START, 0, LV_GRID_ALIGN_CENTER, 0);
 
     auto cpu_label = lv_label_create(resources_row);
@@ -150,7 +150,7 @@ void StatsUI::create_kubernetes_node(lv_obj_t* parent, KubernetesNodeDto& node, 
 
     auto memory_icon_label = lv_label_create(resources_row);
     lv_label_set_text(memory_icon_label, FA_MEMORY);
-    lv_obj_set_style_text_font(memory_icon_label, XSMALL_FONT, LV_PART_MAIN);
+    lv_obj_set_style_text_font(memory_icon_label, XSMALL_ICONS_FONT, LV_PART_MAIN);
     lv_obj_set_style_pad_left(memory_icon_label, lv_dpx(5), LV_PART_MAIN);
     lv_obj_set_grid_cell(memory_icon_label, LV_GRID_ALIGN_START, 2, LV_GRID_ALIGN_CENTER, 0);
 
@@ -170,7 +170,7 @@ void StatsUI::create_kubernetes_node(lv_obj_t* parent, KubernetesNodeDto& node, 
 
     auto pods_icon_label = lv_label_create(containers_row);
     lv_label_set_text(pods_icon_label, FA_CUBES);
-    lv_obj_set_style_text_font(pods_icon_label, XSMALL_FONT, LV_PART_MAIN);
+    lv_obj_set_style_text_font(pods_icon_label, XSMALL_ICONS_FONT, LV_PART_MAIN);
     lv_obj_set_grid_cell(pods_icon_label, LV_GRID_ALIGN_START, 0, LV_GRID_ALIGN_CENTER, 0);
 
     auto pods_label = lv_label_create(containers_row);
@@ -181,7 +181,7 @@ void StatsUI::create_kubernetes_node(lv_obj_t* parent, KubernetesNodeDto& node, 
 
     auto containers_icon_label = lv_label_create(containers_row);
     lv_label_set_text(containers_icon_label, FA_CUBE);
-    lv_obj_set_style_text_font(containers_icon_label, XSMALL_FONT, LV_PART_MAIN);
+    lv_obj_set_style_text_font(containers_icon_label, XSMALL_ICONS_FONT, LV_PART_MAIN);
     lv_obj_set_style_pad_left(containers_icon_label, lv_dpx(5), LV_PART_MAIN);
     lv_obj_set_grid_cell(containers_icon_label, LV_GRID_ALIGN_START, 2, LV_GRID_ALIGN_CENTER, 0);
 
@@ -215,7 +215,7 @@ void StatsUI::create_container_starts_cell(lv_obj_t* parent, int value, const ch
 
     auto icon_label = lv_label_create(cont);
     lv_label_set_text(icon_label, icon);
-    lv_obj_set_style_text_font(icon_label, SMALL_FONT, LV_PART_MAIN);
+    lv_obj_set_style_text_font(icon_label, SMALL_ICONS_FONT, LV_PART_MAIN);
     lv_obj_set_grid_cell(icon_label, LV_GRID_ALIGN_START, 0, LV_GRID_ALIGN_CENTER, 0);
 
     auto label = lv_label_create(cont);
@@ -226,7 +226,7 @@ void StatsUI::create_container_starts_cell(lv_obj_t* parent, int value, const ch
 
     auto container_icon_label = lv_label_create(cont);
     lv_label_set_text(container_icon_label, FA_CUBE);
-    lv_obj_set_style_text_font(container_icon_label, SMALL_FONT, LV_PART_MAIN);
+    lv_obj_set_style_text_font(container_icon_label, SMALL_ICONS_FONT, LV_PART_MAIN);
     lv_obj_set_grid_cell(container_icon_label, LV_GRID_ALIGN_START, 2, LV_GRID_ALIGN_CENTER, 0);
 }
 
@@ -289,14 +289,14 @@ void StatsUI::create_job(lv_obj_t* parent, Job& job, uint8_t col, uint8_t row) {
     if (job.status_icon) {
         auto status_icon_label = lv_label_create(cont);
         lv_label_set_text(status_icon_label, job.status_icon);
-        lv_obj_set_style_text_font(status_icon_label, XSMALL_FONT, LV_PART_MAIN);
+        lv_obj_set_style_text_font(status_icon_label, XSMALL_ICONS_FONT, LV_PART_MAIN);
         lv_obj_set_style_pad_left(status_icon_label, lv_dpx(5), LV_PART_MAIN);
         lv_obj_set_grid_cell(status_icon_label, LV_GRID_ALIGN_START, 0, LV_GRID_ALIGN_CENTER, 0);
     }
 
     auto icon_label = lv_label_create(cont);
     lv_label_set_text(icon_label, job.icon);
-    lv_obj_set_style_text_font(icon_label, XSMALL_FONT, LV_PART_MAIN);
+    lv_obj_set_style_text_font(icon_label, XSMALL_ICONS_FONT, LV_PART_MAIN);
     lv_obj_set_style_pad_left(icon_label, lv_dpx(5), LV_PART_MAIN);
     lv_obj_set_grid_cell(icon_label, LV_GRID_ALIGN_START, 1, LV_GRID_ALIGN_CENTER, 0);
 

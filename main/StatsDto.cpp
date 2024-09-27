@@ -1,26 +1,23 @@
 // ReSharper disable CppClangTidyMiscUseAnonymousNamespace
 
 #include "includes.h"
+
 #include "StatsDto.h"
+
 #include "cJSON.h"
 
 static bool parse_jenkins_build_status(const char* statusStr, JenkinsBuildStatus& status) {
     if (strcmp(statusStr, "ABORTED") == 0) {
         status = JenkinsBuildStatus::Aborted;
-    }
-    else if (strcmp(statusStr, "FAILURE") == 0) {
+    } else if (strcmp(statusStr, "FAILURE") == 0) {
         status = JenkinsBuildStatus::Failure;
-    }
-    else if (strcmp(statusStr, "NOT_BUILT") == 0) {
+    } else if (strcmp(statusStr, "NOT_BUILT") == 0) {
         status = JenkinsBuildStatus::NotBuilt;
-    }
-    else if (strcmp(statusStr, "SUCCESS") == 0) {
+    } else if (strcmp(statusStr, "SUCCESS") == 0) {
         status = JenkinsBuildStatus::Success;
-    }
-    else if (strcmp(statusStr, "UNSTABLE") == 0) {
+    } else if (strcmp(statusStr, "UNSTABLE") == 0) {
         status = JenkinsBuildStatus::Unstable;
-    }
-    else {
+    } else {
         return false;
     }
 
@@ -29,15 +26,15 @@ static bool parse_jenkins_build_status(const char* statusStr, JenkinsBuildStatus
 
 // Helper function to parse JenkinsBuildDto
 static bool parse_jenkins_build(const cJSON* item, JenkinsBuildDto& build) {
-    if (!cJSON_IsObject(item)) return false;
+    if (!cJSON_IsObject(item))
+        return false;
 
     const cJSON* name = cJSON_GetObjectItemCaseSensitive(item, "name");
     const cJSON* number = cJSON_GetObjectItemCaseSensitive(item, "number");
     const cJSON* execution = cJSON_GetObjectItemCaseSensitive(item, "execution");
     const cJSON* status = cJSON_GetObjectItemCaseSensitive(item, "status");
 
-    if (!cJSON_IsString(name) || !cJSON_IsNumber(number) ||
-        !cJSON_IsNumber(execution) || !cJSON_IsString(status)) {
+    if (!cJSON_IsString(name) || !cJSON_IsNumber(number) || !cJSON_IsNumber(execution) || !cJSON_IsString(status)) {
         return false;
     }
 
@@ -53,7 +50,8 @@ static bool parse_jenkins_build(const cJSON* item, JenkinsBuildDto& build) {
 
 // Helper function to parse KubernetesNodeDto
 static bool parse_kubernetes_node(const cJSON* item, KubernetesNodeDto& node) {
-    if (!cJSON_IsObject(item)) return false;
+    if (!cJSON_IsObject(item))
+        return false;
 
     const cJSON* name = cJSON_GetObjectItemCaseSensitive(item, "name");
     const cJSON* created = cJSON_GetObjectItemCaseSensitive(item, "created");
@@ -64,9 +62,8 @@ static bool parse_kubernetes_node(const cJSON* item, KubernetesNodeDto& node) {
     const cJSON* memory_capacity = cJSON_GetObjectItemCaseSensitive(item, "memory_capacity");
     const cJSON* memory_usage = cJSON_GetObjectItemCaseSensitive(item, "memory_usage");
 
-    if (!cJSON_IsString(name) || !cJSON_IsNumber(created) ||
-        !cJSON_IsNumber(allocated_pods) || !cJSON_IsNumber(allocated_containers) ||
-        !cJSON_IsNumber(cpu_capacity) || !cJSON_IsNumber(cpu_usage) ||
+    if (!cJSON_IsString(name) || !cJSON_IsNumber(created) || !cJSON_IsNumber(allocated_pods) ||
+        !cJSON_IsNumber(allocated_containers) || !cJSON_IsNumber(cpu_capacity) || !cJSON_IsNumber(cpu_usage) ||
         !cJSON_IsNumber(memory_capacity) || !cJSON_IsNumber(memory_usage)) {
         return false;
     }
@@ -85,7 +82,8 @@ static bool parse_kubernetes_node(const cJSON* item, KubernetesNodeDto& node) {
 
 // Helper function to parse KubernetesJobDto
 static bool parse_kubernetes_job(const cJSON* item, KubernetesJobDto& job) {
-    if (!cJSON_IsObject(item)) return false;
+    if (!cJSON_IsObject(item))
+        return false;
 
     const cJSON* name = cJSON_GetObjectItemCaseSensitive(item, "name");
     const cJSON* ns = cJSON_GetObjectItemCaseSensitive(item, "namespace");
@@ -94,10 +92,9 @@ static bool parse_kubernetes_job(const cJSON* item, KubernetesJobDto& job) {
     const cJSON* succeeded = cJSON_GetObjectItemCaseSensitive(item, "succeeded");
     const cJSON* failed = cJSON_GetObjectItemCaseSensitive(item, "failed");
 
-    if (!cJSON_IsString(name) || !cJSON_IsString(ns) ||
-        !cJSON_IsNumber(created) ||
-        !(cJSON_IsNumber(completed) || cJSON_IsNull(completed)) ||
-        !cJSON_IsNumber(succeeded) || !cJSON_IsNumber(failed)) {
+    if (!cJSON_IsString(name) || !cJSON_IsString(ns) || !cJSON_IsNumber(created) ||
+        !(cJSON_IsNumber(completed) || cJSON_IsNull(completed)) || !cJSON_IsNumber(succeeded) ||
+        !cJSON_IsNumber(failed)) {
         return false;
     }
 
@@ -107,8 +104,7 @@ static bool parse_kubernetes_job(const cJSON* item, KubernetesJobDto& job) {
 
     if (cJSON_IsNumber(completed)) {
         job.completed = static_cast<time_t>(completed->valuedouble);
-    }
-    else {
+    } else {
         job.completed = 0;
     }
 
@@ -121,7 +117,8 @@ static bool parse_kubernetes_job(const cJSON* item, KubernetesJobDto& job) {
 
 // Helper function to parse ContainerStartsStatsDto
 static bool parse_container_starts(const cJSON* item, ContainerStartsStatsDto& containerStarts) {
-    if (!cJSON_IsObject(item)) return false;
+    if (!cJSON_IsObject(item))
+        return false;
 
     const cJSON* day = cJSON_GetObjectItemCaseSensitive(item, "day");
     const cJSON* week = cJSON_GetObjectItemCaseSensitive(item, "week");
@@ -136,13 +133,22 @@ static bool parse_container_starts(const cJSON* item, ContainerStartsStatsDto& c
     return true;
 }
 
+void StatsDto::clear() {
+    last_builds.clear();
+    last_failed_builds.clear();
+    nodes.clear();
+    last_failed_jobs.clear();
+    container_starts = {};
+}
+
 bool StatsDto::from_json(const char* json_string, StatsDto& stats) {
-    cJSON_Data root = { cJSON_Parse(json_string) };
+    stats.clear();
+
+    cJSON_Data root = {cJSON_Parse(json_string)};
     if (*root == nullptr) {
         // Parsing failed
         return false;
     }
-
 
     // Parse container_starts
     const cJSON* container_starts = cJSON_GetObjectItemCaseSensitive(*root, "container_starts");

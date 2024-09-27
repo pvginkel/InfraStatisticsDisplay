@@ -3,18 +3,17 @@
 extern "C" {
 // Use the script in the tools folder to update the fonts.
 
-LV_FONT_DECLARE(lv_font_roboto_12);
-LV_FONT_DECLARE(lv_font_roboto_18);
-LV_FONT_DECLARE(lv_font_roboto_24);
-LV_FONT_DECLARE(lv_font_roboto_28);
-LV_FONT_DECLARE(lv_font_roboto_40);
+LV_FONT_DECLARE(lv_font_regular_28);
+LV_FONT_DECLARE(lv_font_medium_40);
+LV_FONT_DECLARE(lv_font_icons_24);
+LV_FONT_DECLARE(lv_font_icons_28);
 LV_FONT_DECLARE(lv_font_roboto_100_digits);
 }
 
-static constexpr auto XSMALL_FONT = &lv_font_roboto_24;
-static constexpr auto SMALL_FONT = &lv_font_roboto_28;
-static constexpr auto NORMAL_FONT = &lv_font_roboto_40;
-static constexpr auto LARGE_DIGITS_FONT = &lv_font_roboto_100_digits;
+static constexpr auto SMALL_FONT = &lv_font_regular_28;
+static constexpr auto NORMAL_FONT = &lv_font_medium_40;
+static constexpr auto XSMALL_ICONS_FONT = &lv_font_icons_24;
+static constexpr auto SMALL_ICONS_FONT = &lv_font_icons_28;
 
 class LvglUI {
     vector<lv_obj_t*> _loading_circles;

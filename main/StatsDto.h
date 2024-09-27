@@ -48,5 +48,7 @@ struct StatsDto {
     StatsDto(StatsDto&&) = delete;
     StatsDto& operator=(StatsDto&&) = delete;
 
+    void clear();
+
     static bool from_json(const char* json_string, StatsDto& stats);
 };

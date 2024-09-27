@@ -1,7 +1,7 @@
 /*******************************************************************************
  * Size: 40 px
  * Bpp: 4
- * Opts: --no-compress --no-prefilter --bpp 4 --size 40 --format lvgl -o ..\main\lv_font_roboto_40.c --force-fast-kern-format --lv-include lvgl.h --font Roboto-Regular.ttf --range 0x20-0x7F,0xB0,0x2022
+ * Opts: --no-compress --no-prefilter --bpp 4 --size 40 --format lvgl -o ..\main\lv_font_regular_40.c --force-fast-kern-format --lv-include lvgl.h --font Roboto-Regular.ttf --range 0x20-0x7F,0xB0,0x2022
  ******************************************************************************/
 
 #ifdef LV_LVGL_H_INCLUDE_SIMPLE
@@ -10,11 +10,11 @@
 #include "lvgl.h"
 #endif
 
-#ifndef LV_FONT_ROBOTO_40
-#define LV_FONT_ROBOTO_40 1
+#ifndef LV_FONT_REGULAR_40
+#define LV_FONT_REGULAR_40 1
 #endif
 
-#if LV_FONT_ROBOTO_40
+#if LV_FONT_REGULAR_40
 
 /*-----------------
  *    BITMAPS
@@ -3502,9 +3502,9 @@ static lv_font_fmt_txt_dsc_t font_dsc = {
 
 /*Initialize a public general font descriptor*/
 #if LV_VERSION_CHECK(8, 0, 0)
-const lv_font_t lv_font_roboto_40 = {
+const lv_font_t lv_font_regular_40 = {
 #else
-lv_font_t lv_font_roboto_40 = {
+lv_font_t lv_font_regular_40 = {
 #endif
     .get_glyph_dsc = lv_font_get_glyph_dsc_fmt_txt,    /*Function pointer to get glyph's data*/
     .get_glyph_bitmap = lv_font_get_bitmap_fmt_txt,    /*Function pointer to get glyph's bitmap*/
@@ -3522,5 +3522,5 @@ lv_font_t lv_font_roboto_40 = {
 
 
 
-#endif /*#if LV_FONT_ROBOTO_40*/
+#endif /*#if LV_FONT_REGULAR_40*/
 
