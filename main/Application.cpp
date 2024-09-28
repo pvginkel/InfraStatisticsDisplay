@@ -4,16 +4,15 @@
 
 #include "Messages.h"
 #include "driver/i2c.h"
-#include "esp_netif_sntp.h"
 
 LOG_TAG(Application);
 
-Application* Application::_instance = nullptr;
-
 Application::Application(Device* device)
-    : _device(device), _wifi_connection(&_queue), _loading_ui(nullptr), _stats_ui(nullptr) {
-    _instance = this;
-}
+    : _device(device),
+      _network_connection(&_queue),
+      _loading_ui(nullptr),
+      _stats_ui(nullptr),
+      _have_sntp_synced(false) {}
 
 void Application::begin(bool silent) {
     ESP_LOGI(TAG, "Setting up the log manager");
@@ -45,19 +44,19 @@ void Application::do_begin(bool silent) {
     _loading_ui->set_state(LoadingUIState::Loading);
     _loading_ui->render();
 
-    begin_wifi();
+    begin_network();
 }
 
-void Application::begin_wifi() {
+void Application::begin_network() {
     ESP_LOGI(TAG, "Connecting to WiFi");
 
-    _wifi_connection.on_state_changed([this](auto state) {
+    _network_connection.on_state_changed([this](auto state) {
         if (!_loading_ui) {
             esp_restart();
         }
 
         if (state.connected) {
-            begin_wifi_available();
+            begin_network_available();
         } else {
             _loading_ui->set_error(MSG_FAILED_TO_CONNECT);
             _loading_ui->set_state(LoadingUIState::Error);
@@ -65,29 +64,10 @@ void Application::begin_wifi() {
         }
     });
 
-    _wifi_connection.begin();
+    _network_connection.begin();
 }
 
-void Application::begin_wifi_available() {
-    ESP_LOGI(TAG, "WiFi available, initializing SNTP");
-
-    esp_sntp_config_t config = ESP_NETIF_SNTP_DEFAULT_CONFIG("pool.ntp.org");
-
-    config.sync_cb = [](struct timeval* tv) {
-        tm time_info;
-        localtime_r(&tv->tv_sec, &time_info);
-
-        char time_str[64];
-        strftime(time_str, sizeof(time_str), "%Y-%m-%d %H:%M:%S", &time_info);
-        ESP_LOGI(TAG, "Time synchronized to %s", time_str);
-
-        _instance->_queue.enqueue([]() { _instance->begin_sntp_synced(); });
-    };
-
-    esp_netif_sntp_init(&config);
-}
-
-void Application::begin_sntp_synced() {
+void Application::begin_network_available() {
     ESP_LOGI(TAG, "Getting device configuration");
 
     auto err = _configuration.load();

@@ -1,14 +1,20 @@
 #include "includes.h"
 
-#include "WifiConnection.h"
+#include "NetworkConnection.h"
 
-static const char *TAG = "WifiConnection";
+#include "esp_netif_sntp.h"
 
-WifiConnection::WifiConnection(Queue *synchronizationQueue)
-    : _synchronization_queue(synchronizationQueue), _attempt(0) {}
+LOG_TAG(NetworkConnection);
 
-void WifiConnection::begin() {
-    _wifiEventGroup = xEventGroupCreate();
+NetworkConnection *NetworkConnection::_instance = nullptr;
+
+NetworkConnection::NetworkConnection(Queue *synchronizationQueue)
+    : _synchronization_queue(synchronizationQueue), _attempt(0), _have_sntp_synced(false) {
+    _instance = this;
+}
+
+void NetworkConnection::begin() {
+    _wifi_event_group = xEventGroupCreate();
 
     ESP_ERROR_CHECK(esp_netif_init());
 
@@ -24,14 +30,14 @@ void WifiConnection::begin() {
     ESP_ERROR_CHECK(esp_event_handler_instance_register(
         WIFI_EVENT, ESP_EVENT_ANY_ID,
         [](auto eventHandlerArg, auto eventBase, auto eventId, auto eventData) {
-            ((WifiConnection *)eventHandlerArg)->event_handler(eventBase, eventId, eventData);
+            ((NetworkConnection *)eventHandlerArg)->event_handler(eventBase, eventId, eventData);
         },
         this, &instanceAnyId));
 
     ESP_ERROR_CHECK(esp_event_handler_instance_register(
         IP_EVENT, IP_EVENT_STA_GOT_IP,
         [](auto eventHandlerArg, auto eventBase, auto eventId, auto eventData) {
-            ((WifiConnection *)eventHandlerArg)->event_handler(eventBase, eventId, eventData);
+            ((NetworkConnection *)eventHandlerArg)->event_handler(eventBase, eventId, eventData);
         },
         this, &instanceGotIp));
 
@@ -64,7 +70,7 @@ void WifiConnection::begin() {
     ESP_LOGI(TAG, "Finished setting up WiFi");
 }
 
-void WifiConnection::event_handler(esp_event_base_t eventBase, int32_t eventId, void *eventData) {
+void NetworkConnection::event_handler(esp_event_base_t eventBase, int32_t eventId, void *eventData) {
     if (eventBase == WIFI_EVENT && eventId == WIFI_EVENT_STA_START) {
         ESP_LOGI(TAG, "Connecting to AP, attempt %d", _attempt + 1);
         esp_wifi_connect();
@@ -87,6 +93,29 @@ void WifiConnection::event_handler(esp_event_base_t eventBase, int32_t eventId, 
 
         ESP_LOGI(TAG, "Got ip:" IPSTR, IP2STR(&event->ip_info.ip));
 
-        _state_changed.queue(_synchronization_queue, {.connected = true, .errorReason = 0});
+        setup_sntp();
     }
+}
+
+void NetworkConnection::setup_sntp() {
+    ESP_LOGI(TAG, "Initializing SNTP");
+
+    esp_sntp_config_t config = ESP_NETIF_SNTP_DEFAULT_CONFIG("pool.ntp.org");
+
+    config.sync_cb = [](struct timeval *tv) {
+        tm time_info;
+        localtime_r(&tv->tv_sec, &time_info);
+
+        char time_str[64];
+        strftime(time_str, sizeof(time_str), "%Y-%m-%d %H:%M:%S", &time_info);
+        ESP_LOGI(TAG, "Time synchronized to %s", time_str);
+
+        if (!_instance->_have_sntp_synced) {
+            _instance->_have_sntp_synced = true;
+
+            _instance->_state_changed.queue(_instance->_synchronization_queue, {.connected = true, .errorReason = 0});
+        }
+    };
+
+    esp_netif_sntp_init(&config);
 }
