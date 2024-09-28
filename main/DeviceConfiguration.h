@@ -5,6 +5,7 @@ private:
     static constexpr auto DEFAULT_ENABLE_OTA = true;
 
     string _device_name;
+    string _device_entity_id;
     string _endpoint;
     bool _enable_ota;
 
@@ -19,5 +20,6 @@ public:
 
     const string& get_endpoint() const { return _endpoint; }
     const string& get_device_name() const { return _device_name; }
+    const string& get_device_entity_id() const { return _device_entity_id; }
     bool get_enable_ota() const { return _enable_ota; }
 };

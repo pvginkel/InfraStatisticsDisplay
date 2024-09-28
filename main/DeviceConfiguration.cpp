@@ -15,11 +15,6 @@ DeviceConfiguration::DeviceConfiguration() : _enable_ota(DEFAULT_ENABLE_OTA) {
 }
 
 esp_err_t DeviceConfiguration::load() {
-    auto err = ESP_OK;
-    cJSON* root = nullptr;
-    cJSON* deviceNameItem = nullptr;
-    cJSON* enableOTAItem = nullptr;
-
     esp_http_client_config_t config = {
         .url = get_endpoint().c_str(),
         .timeout_ms = CONFIG_OTA_RECV_TIMEOUT,
@@ -28,44 +23,49 @@ esp_err_t DeviceConfiguration::load() {
     ESP_LOGI(TAG, "Getting device configuration from %s", config.url);
 
     string json;
-    err = esp_http_download_string(config, json, 128 * 1024);
+    auto err = esp_http_download_string(config, json, 128 * 1024);
     if (err != ESP_OK) {
-        goto end;
+        return err;
     }
 
-    root = cJSON_Parse(json.c_str());
-    if (!root) {
+    cJSON_Data data = {cJSON_Parse(json.c_str())};
+    if (!*data) {
         ESP_LOGE(TAG, "Failed to parse JSON");
         err = ESP_ERR_INVALID_ARG;
-        goto end;
+        return err;
     }
 
-    deviceNameItem = cJSON_GetObjectItemCaseSensitive(root, "deviceName");
+    auto deviceNameItem = cJSON_GetObjectItemCaseSensitive(*data, "deviceName");
     if (!cJSON_IsString(deviceNameItem) || !deviceNameItem->valuestring) {
         ESP_LOGE(TAG, "Cannot get deviceName property");
-        err = ESP_ERR_INVALID_ARG;
-        goto end;
+        return ESP_ERR_INVALID_ARG;
     }
 
     _device_name = deviceNameItem->valuestring;
 
     ESP_LOGI(TAG, "Device name: %s", _device_name.c_str());
 
-    enableOTAItem = cJSON_GetObjectItemCaseSensitive(root, "enableOTA");
+    auto deviceEntityIdItem = cJSON_GetObjectItemCaseSensitive(*data, "deviceEntityId");
+    if (!cJSON_IsString(deviceEntityIdItem) || !deviceEntityIdItem->valuestring) {
+        ESP_LOGE(TAG, "Cannot get deviceEntityIdItem property");
+        return ESP_ERR_INVALID_ARG;
+    }
+
+    _device_entity_id = deviceEntityIdItem->valuestring;
+
+    ESP_LOGI(TAG, "Device entity ID: %s", _device_entity_id.c_str());
+
+    auto enableOTAItem = cJSON_GetObjectItemCaseSensitive(*data, "enableOTA");
     if (enableOTAItem != nullptr) {
         if (!cJSON_IsBool(enableOTAItem)) {
             ESP_LOGE(TAG, "Cannot get enableOTAItem property");
-            err = ESP_ERR_INVALID_ARG;
-            goto end;
+            return ESP_ERR_INVALID_ARG;
         }
 
         _enable_ota = cJSON_IsTrue(enableOTAItem);
     }
 
-end:
-    if (root) {
-        cJSON_Delete(root);
-    }
+    ESP_LOGI(TAG, "Enable OTA: %s", _enable_ota ? "yes" : "no");
 
-    return err;
+    return ERR_OK;
 }
