@@ -1,7 +1,7 @@
 [
   {
     "name": "lv_font_regular_{size}",
-    "size": [40, 28],
+    "size": [46, 28],
     "fonts": [
       {
         "file": "Roboto-Regular.ttf",
@@ -11,7 +11,7 @@
   },
   {
     "name": "lv_font_medium_{size}",
-    "size": [40, 28],
+    "size": [46, 28],
     "fonts": [
       {
         "file": "Roboto-Medium.ttf",
@@ -21,7 +21,7 @@
   },
   {
     "name": "lv_font_icons_{size}",
-    "size": [28, 24],
+    "size": [33, 24],
     "fonts": [
       {
         "file": "fa-solid-900.ttf",

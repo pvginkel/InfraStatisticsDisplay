@@ -108,7 +108,8 @@ void StatsUI::create_kubernetes_nodes(lv_obj_t* parent, uint8_t col, uint8_t row
     static lv_coord_t top_outer_cont_row_desc[] = {LV_GRID_FR(1), LV_GRID_TEMPLATE_LAST};
     lv_obj_set_grid_dsc_array(nodes_cont, top_outer_cont_col_desc, top_outer_cont_row_desc);
     lv_obj_set_grid_cell(nodes_cont, LV_GRID_ALIGN_STRETCH, col, LV_GRID_ALIGN_START, row);
-    lv_obj_set_style_pad_ver(nodes_cont, lv_dpx(26), LV_PART_MAIN);
+    lv_obj_set_style_pad_top(nodes_cont, lv_dpx(18), LV_PART_MAIN);
+    lv_obj_set_style_pad_bottom(nodes_cont, lv_dpx(26), LV_PART_MAIN);
 
     for (size_t i = 0; i < node_count; i++) {
         create_kubernetes_node(nodes_cont, _stats.nodes[i], i, 0);
@@ -202,22 +203,33 @@ void StatsUI::create_statistics(lv_obj_t* parent, uint8_t col, uint8_t row) {
     auto cont = lv_obj_create(parent);
     reset_layout_container_styles(cont);
     lv_obj_set_grid_cell(cont, LV_GRID_ALIGN_STRETCH, col, LV_GRID_ALIGN_CENTER, row);
-    static lv_coord_t cont_col_desc[] = {LV_GRID_FR(1),   LV_GRID_CONTENT, LV_GRID_FR(1),
-                                         LV_GRID_CONTENT, LV_GRID_FR(1),   LV_GRID_TEMPLATE_LAST};
+    static lv_coord_t cont_col_desc[] = {LV_GRID_FR(1),   LV_GRID_CONTENT, LV_GRID_FR(1), LV_GRID_CONTENT,
+                                         LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_FR(1), LV_GRID_TEMPLATE_LAST};
     static lv_coord_t cont_row_desc[] = {LV_GRID_CONTENT, LV_GRID_TEMPLATE_LAST};
     lv_obj_set_grid_dsc_array(cont, cont_col_desc, cont_row_desc);
 
-    create_container_starts_cell(cont, _stats.container_starts.week, FA_CALENDAR_WEEK, 1, 0);
-    create_container_starts_cell(cont, _stats.container_starts.day, FA_CALENDAR_DAY, 3, 0);
+    auto total_containers = 0;
+    auto total_pods = 0;
+
+    for (auto& node : _stats.nodes) {
+        total_containers += node.allocated_containers;
+        total_pods += node.allocated_pods;
+    }
+
+    create_container_starts_cell(cont, total_pods, FA_CUBES, 1, 0);
+    create_container_starts_cell(cont, total_containers, FA_CUBE, 3, 0);
+    create_container_starts_cell(cont, _stats.container_starts.week, FA_CALENDAR_WEEK, 4, 0);
+    create_container_starts_cell(cont, _stats.container_starts.day, FA_CALENDAR_DAY, 5, 0);
 }
 
 void StatsUI::create_container_starts_cell(lv_obj_t* parent, int value, const char* icon, uint8_t col, uint8_t row) {
     auto cont = lv_obj_create(parent);
     reset_layout_container_styles(cont);
     lv_obj_set_grid_cell(cont, LV_GRID_ALIGN_START, col, LV_GRID_ALIGN_CENTER, row);
-    static lv_coord_t cont_col_desc[] = {LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_TEMPLATE_LAST};
+    static lv_coord_t cont_col_desc[] = {LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_TEMPLATE_LAST};
     static lv_coord_t cont_row_desc[] = {LV_GRID_CONTENT, LV_GRID_TEMPLATE_LAST};
     lv_obj_set_grid_dsc_array(cont, cont_col_desc, cont_row_desc);
+    lv_obj_set_style_pad_hor(cont, lv_dpx(24), LV_PART_MAIN);
 
     auto icon_label = lv_label_create(cont);
     lv_label_set_text(icon_label, icon);
@@ -228,12 +240,7 @@ void StatsUI::create_container_starts_cell(lv_obj_t* parent, int value, const ch
     lv_label_set_text(label, format("%d", value).c_str());
     lv_obj_set_style_text_font(label, NORMAL_FONT, LV_PART_MAIN);
     lv_obj_set_grid_cell(label, LV_GRID_ALIGN_START, 1, LV_GRID_ALIGN_CENTER, 0);
-    lv_obj_set_style_pad_hor(label, lv_dpx(16), LV_PART_MAIN);
-
-    auto container_icon_label = lv_label_create(cont);
-    lv_label_set_text(container_icon_label, FA_CUBE);
-    lv_obj_set_style_text_font(container_icon_label, SMALL_ICONS_FONT, LV_PART_MAIN);
-    lv_obj_set_grid_cell(container_icon_label, LV_GRID_ALIGN_START, 2, LV_GRID_ALIGN_CENTER, 0);
+    lv_obj_set_style_pad_left(label, lv_dpx(10), LV_PART_MAIN);
 }
 
 void StatsUI::create_last_builds(lv_obj_t* parent, uint8_t col, uint8_t row) {

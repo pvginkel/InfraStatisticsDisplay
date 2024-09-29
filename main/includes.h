@@ -71,7 +71,11 @@ static T clamp(T value, T min, T max) {
 #include "Callback.h"
 #include "support.h"
 
-#ifndef LV_SIMULATOR
+#ifdef LV_SIMULATOR
+
+#define ESP_LOGE(...)
+
+#else
 
 #include "Mutex.h"
 
