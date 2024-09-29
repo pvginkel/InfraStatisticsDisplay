@@ -36,6 +36,10 @@ void StatsUI::do_update() {
             // calculation, every other update will be calculated simply
             // by adding the update interval.
             _next_update = start_hour_time + rounded_up;
+
+            // Subtract 10 seconds to better time the update on the interval.
+            // The update completes in roughly 15 seconds.
+            _next_update -= 10;
         } else {
             _next_update += CONFIG_INFRA_STATISTICS_UPDATE_INTERVAL;
         }
