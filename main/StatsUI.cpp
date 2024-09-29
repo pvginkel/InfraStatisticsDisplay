@@ -100,11 +100,12 @@ void StatsUI::create_kubernetes_nodes(lv_obj_t* parent, uint8_t col, uint8_t row
     reset_layout_container_styles(nodes_cont);
     static lv_coord_t* top_outer_cont_col_desc = nullptr;
     delete[] top_outer_cont_col_desc;
-    top_outer_cont_col_desc = new lv_coord_t[node_count + 1];
+    top_outer_cont_col_desc = new lv_coord_t[node_count * 2];
     for (size_t i = 0; i < node_count; i++) {
-        top_outer_cont_col_desc[i] = LV_GRID_FR(1);
+        top_outer_cont_col_desc[i * 2] = LV_GRID_CONTENT;
+        top_outer_cont_col_desc[i * 2 + 1] = LV_GRID_FR(1);
     }
-    top_outer_cont_col_desc[node_count] = LV_GRID_TEMPLATE_LAST;
+    top_outer_cont_col_desc[node_count * 2 - 1] = LV_GRID_TEMPLATE_LAST;
     static lv_coord_t top_outer_cont_row_desc[] = {LV_GRID_FR(1), LV_GRID_TEMPLATE_LAST};
     lv_obj_set_grid_dsc_array(nodes_cont, top_outer_cont_col_desc, top_outer_cont_row_desc);
     lv_obj_set_grid_cell(nodes_cont, LV_GRID_ALIGN_STRETCH, col, LV_GRID_ALIGN_START, row);
@@ -112,7 +113,7 @@ void StatsUI::create_kubernetes_nodes(lv_obj_t* parent, uint8_t col, uint8_t row
     lv_obj_set_style_pad_bottom(nodes_cont, lv_dpx(26), LV_PART_MAIN);
 
     for (size_t i = 0; i < node_count; i++) {
-        create_kubernetes_node(nodes_cont, _stats.nodes[i], i, 0);
+        create_kubernetes_node(nodes_cont, _stats.nodes[i], i * 2, 0);
     }
 }
 

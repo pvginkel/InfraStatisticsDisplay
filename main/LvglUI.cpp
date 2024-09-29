@@ -5,7 +5,7 @@
 constexpr auto CIRCLES = 11;
 constexpr auto CIRCLES_RADIUS = 10;
 constexpr auto CIRCLE_RADIUS = 4;
-constexpr auto PADDING = 20;
+constexpr auto PADDING = 16;
 
 LvglUI::~LvglUI() { remove_loading_ui(); }
 
