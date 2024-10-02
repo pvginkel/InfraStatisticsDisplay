@@ -40,6 +40,6 @@ protected:
     void create_container_starts_cell(lv_obj_t* parent, int value, const char* icon, uint8_t col, uint8_t row);
     void create_last_builds(lv_obj_t* parent, uint8_t col, uint8_t row);
     void create_failed_jobs(lv_obj_t* parent, uint8_t col, uint8_t row);
-    void create_job(lv_obj_t* parent, Job& job, uint8_t col, uint8_t row);
+    void create_job(lv_obj_t* parent, Job& job, uint8_t row);
     void create_jobs(lv_obj_t* parent, vector<Job>& jobs, uint8_t col, uint8_t row);
 };

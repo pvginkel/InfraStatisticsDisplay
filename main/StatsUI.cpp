@@ -284,7 +284,7 @@ void StatsUI::create_jobs(lv_obj_t* parent, vector<Job>& jobs, uint8_t col, uint
     auto cont = lv_obj_create(parent);
     reset_layout_container_styles(cont);
     lv_obj_set_grid_cell(cont, LV_GRID_ALIGN_STRETCH, col, LV_GRID_ALIGN_START, row);
-    static lv_coord_t cont_col_desc[] = {LV_GRID_FR(1), LV_GRID_TEMPLATE_LAST};
+    static lv_coord_t cont_col_desc[] = {LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_FR(1), LV_GRID_TEMPLATE_LAST};
     static lv_coord_t cont_row_desc[] = {LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_CONTENT,
                                          LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_TEMPLATE_LAST};
     lv_obj_set_grid_dsc_array(cont, cont_col_desc, cont_row_desc);
@@ -292,31 +292,24 @@ void StatsUI::create_jobs(lv_obj_t* parent, vector<Job>& jobs, uint8_t col, uint
     auto job_count = min((int)jobs.size(), 5);
 
     for (auto i = 0; i < job_count; i++) {
-        create_job(cont, jobs[i], 0, i);
+        create_job(cont, jobs[i], i);
     }
 }
 
-void StatsUI::create_job(lv_obj_t* parent, Job& job, uint8_t col, uint8_t row) {
-    auto cont = lv_obj_create(parent);
-    reset_layout_container_styles(cont);
-    lv_obj_set_grid_cell(cont, LV_GRID_ALIGN_STRETCH, col, LV_GRID_ALIGN_START, row);
-    static lv_coord_t cont_col_desc[] = {LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_FR(1), LV_GRID_TEMPLATE_LAST};
-    static lv_coord_t cont_row_desc[] = {LV_GRID_CONTENT, LV_GRID_TEMPLATE_LAST};
-    lv_obj_set_grid_dsc_array(cont, cont_col_desc, cont_row_desc);
-
+void StatsUI::create_job(lv_obj_t* parent, Job& job, uint8_t row) {
     if (job.status_icon) {
-        auto status_icon_label = lv_label_create(cont);
+        auto status_icon_label = lv_label_create(parent);
         lv_label_set_text(status_icon_label, job.status_icon);
         lv_obj_set_style_text_font(status_icon_label, XSMALL_ICONS_FONT, LV_PART_MAIN);
         lv_obj_set_style_pad_left(status_icon_label, lv_dpx(5), LV_PART_MAIN);
-        lv_obj_set_grid_cell(status_icon_label, LV_GRID_ALIGN_START, 0, LV_GRID_ALIGN_CENTER, 0);
+        lv_obj_set_grid_cell(status_icon_label, LV_GRID_ALIGN_CENTER, 0, LV_GRID_ALIGN_CENTER, row);
     }
 
-    auto icon_label = lv_label_create(cont);
+    auto icon_label = lv_label_create(parent);
     lv_label_set_text(icon_label, job.icon);
     lv_obj_set_style_text_font(icon_label, XSMALL_ICONS_FONT, LV_PART_MAIN);
     lv_obj_set_style_pad_left(icon_label, lv_dpx(5), LV_PART_MAIN);
-    lv_obj_set_grid_cell(icon_label, LV_GRID_ALIGN_START, 1, LV_GRID_ALIGN_CENTER, 0);
+    lv_obj_set_grid_cell(icon_label, LV_GRID_ALIGN_CENTER, 1, LV_GRID_ALIGN_CENTER, row);
 
     tm job_time_info;
     localtime_r(&job.time, &job_time_info);
@@ -336,10 +329,10 @@ void StatsUI::create_job(lv_obj_t* parent, Job& job, uint8_t col, uint8_t row) {
         time_str = format("%d:%02d", job_time_info.tm_hour, job_time_info.tm_min);
     }
 
-    auto label = lv_label_create(cont);
+    auto label = lv_label_create(parent);
     lv_label_set_text(label, format("%s: %s", time_str.c_str(), job.name.c_str()).c_str());
     lv_label_set_long_mode(label, LV_LABEL_LONG_DOT);
     lv_obj_set_style_text_font(label, SMALL_FONT, LV_PART_MAIN);
     lv_obj_set_style_pad_hor(label, lv_dpx(5), LV_PART_MAIN);
-    lv_obj_set_grid_cell(label, LV_GRID_ALIGN_STRETCH, 2, LV_GRID_ALIGN_CENTER, 0);
+    lv_obj_set_grid_cell(label, LV_GRID_ALIGN_STRETCH, 2, LV_GRID_ALIGN_CENTER, row);
 }
