@@ -286,10 +286,10 @@ void StatsUI::create_jobs(lv_obj_t* parent, vector<Job>& jobs, uint8_t col, uint
     lv_obj_set_grid_cell(cont, LV_GRID_ALIGN_STRETCH, col, LV_GRID_ALIGN_START, row);
     static lv_coord_t cont_col_desc[] = {LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_FR(1), LV_GRID_TEMPLATE_LAST};
     static lv_coord_t cont_row_desc[] = {LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_CONTENT,
-                                         LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_TEMPLATE_LAST};
+                                         LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_TEMPLATE_LAST};
     lv_obj_set_grid_dsc_array(cont, cont_col_desc, cont_row_desc);
 
-    auto job_count = min((int)jobs.size(), 5);
+    auto job_count = min((int)jobs.size(), 6);
 
     for (auto i = 0; i < job_count; i++) {
         create_job(cont, jobs[i], i);
