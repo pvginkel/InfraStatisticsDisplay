@@ -5,6 +5,7 @@
 #define esp_get_millis() uint32_t(esp_timer_get_time() / 1000ull)
 
 string format(const char* fmt, ...);
+string format_number(int value);
 
 #ifdef NDEBUG
 #define ESP_ERROR_ASSERT(x) \

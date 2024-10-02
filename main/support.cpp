@@ -2,6 +2,8 @@
 
 #include "support.h"
 
+#include "Messages.h"
+
 string format(const char* fmt, ...) {
     va_list ap;
 
@@ -25,6 +27,36 @@ string format(const char* fmt, ...) {
     auto result = string(buffer, length);
 
     free(buffer);
+
+    return result;
+}
+
+string format_number(int value) {
+    auto text = format("%d", value);
+
+    // Count the number of digits.
+
+    auto digits = 0;
+
+    for (size_t i = 0; i < text.length(); i++) {
+        if (isdigit(text[i])) {
+            digits++;
+        }
+    }
+
+    string result;
+    auto offset = 3 - (digits % 3);
+    auto had_digit = false;
+
+    for (size_t i = 0; i < text.length(); i++) {
+        if (isdigit(text[i])) {
+            if (offset++ % 3 == 0 && had_digit) {
+                result += MSG_THOUSANDS_GROUPING;
+            }
+            result += text[i];
+            had_digit = true;
+        }
+    }
 
     return result;
 }

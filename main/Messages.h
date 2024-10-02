@@ -3,6 +3,7 @@
 #define MSG_STARTING "Opstarten..."
 #define MSG_FAILED_TO_CONNECT "Kan niet verbinden"
 #define MSG_FAILED_TO_RETRIEVE_CONFIGURATION "Kan configuratie niet laden van %s"
+#define MSG_THOUSANDS_GROUPING '.'
 
 #define FA_CUBE "\U0000f1b2"
 #define FA_CUBES "\U0000f1b3"

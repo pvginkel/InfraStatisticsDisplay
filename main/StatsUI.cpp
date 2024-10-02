@@ -242,7 +242,7 @@ void StatsUI::create_container_starts_cell(lv_obj_t* parent, int value, const ch
     lv_obj_set_grid_cell(icon_label, LV_GRID_ALIGN_START, 0, LV_GRID_ALIGN_CENTER, 0);
 
     auto label = lv_label_create(cont);
-    lv_label_set_text(label, format("%d", value).c_str());
+    lv_label_set_text(label, format_number(value).c_str());
     lv_obj_set_style_text_font(label, NORMAL_FONT, LV_PART_MAIN);
     lv_obj_set_grid_cell(label, LV_GRID_ALIGN_START, 1, LV_GRID_ALIGN_CENTER, 0);
     lv_obj_set_style_pad_left(label, lv_dpx(10), LV_PART_MAIN);
