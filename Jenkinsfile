@@ -1,12 +1,18 @@
 library('JenkinsPipelineUtils') _
 
 withVault([vaultSecrets: [
+    [path: 'kv/jenkins/iotsupport-pipeline-oidc', engineVersion: 2, secretValues: [
+        [envVar: 'IOTSUPPORT_CLIENT_ID', vaultKey: 'client_id'],
+        [envVar: 'IOTSUPPORT_CLIENT_SECRET', vaultKey: 'client_secret'],
+    ]],
     [path: 'kv/shared/wifi-iot', engineVersion: 2, secretValues: [
         [envVar: 'WIFI_PASSWORD', vaultKey: 'password'],
     ]],
 ]]) {
     podTemplate(inheritFrom: 'jenkins-agent-large', containers: [
         containerTemplate(name: 'idf', image: 'espressif/idf:v5.1.3', command: 'sleep', args: 'infinity', envVars: [
+            containerEnvVar(key: 'IOTSUPPORT_CLIENT_ID', value: '$IOTSUPPORT_CLIENT_ID'),
+            containerEnvVar(key: 'IOTSUPPORT_CLIENT_SECRET', value: '$IOTSUPPORT_CLIENT_SECRET'),
             containerEnvVar(key: 'WIFI_PASSWORD', value: '$WIFI_PASSWORD'),
         ])
     ]) {
