@@ -28,16 +28,11 @@ withVault([vaultSecrets: [
             }
             
             stage('Deploy infra statistics display') {
-                dir('HelmCharts') {
-                    git branch: 'main',
-                        credentialsId: '5f6fbd66-b41c-405f-b107-85ba6fd97f10',
-                        url: 'https://github.com/pvginkel/HelmCharts.git'
-                }
-
                 dir('InfraStatisticsDisplay') {
-                    sh 'cp build/esp32-infra-statistics-display.bin infra-statistics-display-ota.bin'
-
-                    sh 'scripts/upload.sh ../HelmCharts/assets/kubernetes-signing-key infra-statistics-display-ota.bin'
+                    container('idf') {
+                        sh 'chmod +x scripts/upload.sh'
+                        sh 'scripts/upload.sh https://iot.ginbov.nl'
+                    }
                 }
             }
         }
