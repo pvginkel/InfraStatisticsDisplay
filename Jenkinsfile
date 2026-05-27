@@ -1,8 +1,10 @@
 library('JenkinsPipelineUtils') _
 
-withCredentials([
-    string(credentialsId: 'WIFI_PASSWORD', variable: 'WIFI_PASSWORD'),
-]) {
+withVault([vaultSecrets: [
+    [path: 'kv/shared/wifi-iot', engineVersion: 2, secretValues: [
+        [envVar: 'WIFI_PASSWORD', vaultKey: 'password'],
+    ]],
+]]) {
     podTemplate(inheritFrom: 'jenkins-agent-large', containers: [
         containerTemplate(name: 'idf', image: 'espressif/idf:v5.1.3', command: 'sleep', args: 'infinity', envVars: [
             containerEnvVar(key: 'WIFI_PASSWORD', value: '$WIFI_PASSWORD'),
