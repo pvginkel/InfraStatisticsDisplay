@@ -1,0 +1,23 @@
+// Architecture producer pipeline for the federated Architecture-as-Code model.
+// Source of truth: the hand-authored docs/architecture/*.yaml in this repo.
+// The agent needs outbound HTTPS to architecture.webathome.org for validation.
+// Isolated from this repo's main build pipeline.
+
+library('JenkinsPipelineUtils') _
+
+podTemplate(inheritFrom: 'jenkins-agent', containers: [
+    containerTemplates.python('python')
+]) {
+    node(POD_LABEL) {
+        stage('Cloning repo') {
+            checkout scm
+        }
+
+        stage('Architecture') {
+            container('python') {
+                sh './scripts/arch-validate.py docs/architecture/*.yaml'
+            }
+            archiveArtifacts artifacts: 'docs/architecture/*.yaml', fingerprint: true
+        }
+    }
+}

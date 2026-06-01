@@ -1,0 +1,49 @@
+schemaVersion: "0.1"
+producer: infra-statistics-display
+
+# Infra Statistics Display — ESP32-S3 e-paper display showing homelab
+# infrastructure stats (Jenkins builds, Kubernetes jobs, container restarts)
+# pulled from the Infra Statistics service.
+#
+# This repo introduces the FIRMWARE, not the physical device (registered in IoT
+# Support, generated as a device: instance there). Modeled as a standard esp-mdm
+# device: the universal platform edges plus the device-specific Infra Statistics
+# backend. NVS-provisioned addresses → no boundBy.
+
+systemSoftware:
+  - id: ss:infra-statistics-display,3199b06f-ae1a-4df0-af38-96229376c00e
+    label: Infra Statistics Display firmware
+    summary: >-
+      ESP-IDF firmware (ESP32-S3, Waveshare e-paper) that polls the Infra
+      Statistics service and renders Jenkins/Kubernetes homelab metrics; managed
+      over the air by IoT Support.
+    introduced: 2024-09-15
+    lifecycle: active
+    stereotype: SoftwareProduct
+    sourceRepository: git:pvginkel/InfraStatisticsDisplay
+    stats:
+      mcu: esp32-s3
+      display: Waveshare e-paper
+
+relations:
+  # ── Universal MDM platform edges (NVS-provisioned by IoT Support; no boundBy) ──
+  - id: rel:infra-statistics-display-consumes-iotsupport
+    source: ss:infra-statistics-display,3199b06f-ae1a-4df0-af38-96229376c00e
+    target: svc:iotsupport-api,b7c5b5ba-36eb-47b8-bf7e-5c50fa1a3656
+    type: Association
+  - id: rel:infra-statistics-display-consumes-pub-sub
+    source: ss:infra-statistics-display,3199b06f-ae1a-4df0-af38-96229376c00e
+    target: cap:pub-sub-broker
+    type: Association
+  - id: rel:infra-statistics-display-consumes-iam
+    source: ss:infra-statistics-display,3199b06f-ae1a-4df0-af38-96229376c00e
+    target: cap:iam
+    type: Association
+
+  # ── Device-specific: infra-statistics backend ──
+  # Endpoint is a compile-time constant (infrastatistics.home); hardcoded base
+  # URL → no boundBy.
+  - id: rel:infra-statistics-display-consumes-infra-statistics
+    source: ss:infra-statistics-display,3199b06f-ae1a-4df0-af38-96229376c00e
+    target: svc:infra-statistics,e6a1608a-3657-4768-8f6b-1ba7d0691ca9
+    type: Association
