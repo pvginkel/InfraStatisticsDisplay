@@ -1,6 +1,6 @@
 # Application configuration
 
-CONFIG_INFRA_STATISTICS_ENDPOINT="http://infrastatistics.home/stats?jobs=6"
+CONFIG_INFRA_STATISTICS_ENDPOINT="http://infrastatistics.home/stats?jobs=7"
 CONFIG_DISPLAY_AUTO_OFF_MS=20000
 CONFIG_DISPLAY_DOUBLE_FB=y
 

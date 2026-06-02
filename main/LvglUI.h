@@ -3,15 +3,19 @@
 extern "C" {
 // Use the script in the tools folder to update the fonts.
 
+LV_FONT_DECLARE(lv_font_regular_24);
 LV_FONT_DECLARE(lv_font_regular_28);
 LV_FONT_DECLARE(lv_font_medium_46);
+LV_FONT_DECLARE(lv_font_icons_20);
 LV_FONT_DECLARE(lv_font_icons_24);
 LV_FONT_DECLARE(lv_font_icons_33);
 LV_FONT_DECLARE(lv_font_roboto_100_digits);
 }
 
+static constexpr auto XSMALL_FONT = &lv_font_regular_24;
 static constexpr auto SMALL_FONT = &lv_font_regular_28;
 static constexpr auto NORMAL_FONT = &lv_font_medium_46;
+static constexpr auto XXSMALL_ICONS_FONT = &lv_font_icons_20;
 static constexpr auto XSMALL_ICONS_FONT = &lv_font_icons_24;
 static constexpr auto SMALL_ICONS_FONT = &lv_font_icons_33;
 

@@ -151,25 +151,25 @@ void StatsUI::create_kubernetes_node(lv_obj_t* parent, KubernetesNodeDto& node, 
 
     auto cpu_icon_label = lv_label_create(resources_row);
     lv_label_set_text(cpu_icon_label, FA_MICROCHIP);
-    lv_obj_set_style_text_font(cpu_icon_label, XSMALL_ICONS_FONT, LV_PART_MAIN);
+    lv_obj_set_style_text_font(cpu_icon_label, XXSMALL_ICONS_FONT, LV_PART_MAIN);
     lv_obj_set_grid_cell(cpu_icon_label, LV_GRID_ALIGN_START, 0, LV_GRID_ALIGN_CENTER, 0);
 
     auto cpu_label = lv_label_create(resources_row);
     lv_label_set_text(cpu_label, strformat("%d%%", (int)(node.cpu_usage * 100.0f / node.cpu_capacity)).c_str());
-    lv_obj_set_style_text_font(cpu_label, SMALL_FONT, LV_PART_MAIN);
+    lv_obj_set_style_text_font(cpu_label, XSMALL_FONT, LV_PART_MAIN);
     lv_obj_set_style_pad_hor(cpu_label, lv_dpx(5), LV_PART_MAIN);
     lv_obj_set_grid_cell(cpu_label, LV_GRID_ALIGN_START, 1, LV_GRID_ALIGN_CENTER, 0);
 
     auto memory_icon_label = lv_label_create(resources_row);
     lv_label_set_text(memory_icon_label, FA_MEMORY);
-    lv_obj_set_style_text_font(memory_icon_label, XSMALL_ICONS_FONT, LV_PART_MAIN);
+    lv_obj_set_style_text_font(memory_icon_label, XXSMALL_ICONS_FONT, LV_PART_MAIN);
     lv_obj_set_style_pad_left(memory_icon_label, lv_dpx(5), LV_PART_MAIN);
     lv_obj_set_grid_cell(memory_icon_label, LV_GRID_ALIGN_START, 2, LV_GRID_ALIGN_CENTER, 0);
 
     auto memory_label = lv_label_create(resources_row);
     lv_label_set_text(memory_label,
                       strformat("%d%%", (int)(node.memory_usage * 100.0f / node.memory_capacity)).c_str());
-    lv_obj_set_style_text_font(memory_label, SMALL_FONT, LV_PART_MAIN);
+    lv_obj_set_style_text_font(memory_label, XSMALL_FONT, LV_PART_MAIN);
     lv_obj_set_style_pad_hor(memory_label, lv_dpx(5), LV_PART_MAIN);
     lv_obj_set_grid_cell(memory_label, LV_GRID_ALIGN_START, 3, LV_GRID_ALIGN_CENTER, 0);
 
@@ -183,24 +183,24 @@ void StatsUI::create_kubernetes_node(lv_obj_t* parent, KubernetesNodeDto& node, 
 
     auto pods_icon_label = lv_label_create(containers_row);
     lv_label_set_text(pods_icon_label, FA_CUBES);
-    lv_obj_set_style_text_font(pods_icon_label, XSMALL_ICONS_FONT, LV_PART_MAIN);
+    lv_obj_set_style_text_font(pods_icon_label, XXSMALL_ICONS_FONT, LV_PART_MAIN);
     lv_obj_set_grid_cell(pods_icon_label, LV_GRID_ALIGN_START, 0, LV_GRID_ALIGN_CENTER, 0);
 
     auto pods_label = lv_label_create(containers_row);
     lv_label_set_text(pods_label, strformat("%d", node.allocated_pods).c_str());
-    lv_obj_set_style_text_font(pods_label, SMALL_FONT, LV_PART_MAIN);
+    lv_obj_set_style_text_font(pods_label, XSMALL_FONT, LV_PART_MAIN);
     lv_obj_set_style_pad_hor(pods_label, lv_dpx(5), LV_PART_MAIN);
     lv_obj_set_grid_cell(pods_label, LV_GRID_ALIGN_START, 1, LV_GRID_ALIGN_CENTER, 0);
 
     auto containers_icon_label = lv_label_create(containers_row);
     lv_label_set_text(containers_icon_label, FA_CUBE);
-    lv_obj_set_style_text_font(containers_icon_label, XSMALL_ICONS_FONT, LV_PART_MAIN);
+    lv_obj_set_style_text_font(containers_icon_label, XXSMALL_ICONS_FONT, LV_PART_MAIN);
     lv_obj_set_style_pad_left(containers_icon_label, lv_dpx(5), LV_PART_MAIN);
     lv_obj_set_grid_cell(containers_icon_label, LV_GRID_ALIGN_START, 2, LV_GRID_ALIGN_CENTER, 0);
 
     auto containers_label = lv_label_create(containers_row);
     lv_label_set_text(containers_label, strformat("%d", node.allocated_containers).c_str());
-    lv_obj_set_style_text_font(containers_label, SMALL_FONT, LV_PART_MAIN);
+    lv_obj_set_style_text_font(containers_label, XSMALL_FONT, LV_PART_MAIN);
     lv_obj_set_style_pad_hor(containers_label, lv_dpx(5), LV_PART_MAIN);
     lv_obj_set_grid_cell(containers_label, LV_GRID_ALIGN_START, 3, LV_GRID_ALIGN_CENTER, 0);
 
@@ -218,14 +218,14 @@ void StatsUI::create_kubernetes_node(lv_obj_t* parent, KubernetesNodeDto& node, 
         if (!node.ready) {
             auto not_ready_icon = lv_label_create(status_row);
             lv_label_set_text(not_ready_icon, FA_TRIANGLE_EXCLAMATION);
-            lv_obj_set_style_text_font(not_ready_icon, XSMALL_ICONS_FONT, LV_PART_MAIN);
+            lv_obj_set_style_text_font(not_ready_icon, XXSMALL_ICONS_FONT, LV_PART_MAIN);
             lv_obj_set_style_pad_hor(not_ready_icon, lv_dpx(4), LV_PART_MAIN);
         }
 
         if (node.cordoned) {
             auto cordoned_icon = lv_label_create(status_row);
             lv_label_set_text(cordoned_icon, FA_CIRCLE_PAUSE);
-            lv_obj_set_style_text_font(cordoned_icon, XSMALL_ICONS_FONT, LV_PART_MAIN);
+            lv_obj_set_style_text_font(cordoned_icon, XXSMALL_ICONS_FONT, LV_PART_MAIN);
             lv_obj_set_style_pad_hor(cordoned_icon, lv_dpx(4), LV_PART_MAIN);
         }
 
@@ -318,11 +318,11 @@ void StatsUI::create_jobs(lv_obj_t* parent, vector<Job>& jobs, uint8_t col, uint
     reset_layout_container_styles(cont);
     lv_obj_set_grid_cell(cont, LV_GRID_ALIGN_STRETCH, col, LV_GRID_ALIGN_START, row);
     static lv_coord_t cont_col_desc[] = {LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_FR(1), LV_GRID_TEMPLATE_LAST};
-    static lv_coord_t cont_row_desc[] = {LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_CONTENT,      LV_GRID_CONTENT,
-                                         LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_TEMPLATE_LAST};
+    static lv_coord_t cont_row_desc[] = {LV_GRID_CONTENT, LV_GRID_CONTENT,      LV_GRID_CONTENT, LV_GRID_CONTENT,
+                                         LV_GRID_CONTENT, LV_GRID_CONTENT,      LV_GRID_CONTENT, LV_GRID_TEMPLATE_LAST};
     lv_obj_set_grid_dsc_array(cont, cont_col_desc, cont_row_desc);
 
-    auto job_count = min((int)jobs.size(), 6);
+    auto job_count = min((int)jobs.size(), 7);
 
     for (auto i = 0; i < job_count; i++) {
         create_job(cont, jobs[i], i);
@@ -333,14 +333,14 @@ void StatsUI::create_job(lv_obj_t* parent, Job& job, uint8_t row) {
     if (job.status_icon) {
         auto status_icon_label = lv_label_create(parent);
         lv_label_set_text(status_icon_label, job.status_icon);
-        lv_obj_set_style_text_font(status_icon_label, XSMALL_ICONS_FONT, LV_PART_MAIN);
+        lv_obj_set_style_text_font(status_icon_label, XXSMALL_ICONS_FONT, LV_PART_MAIN);
         lv_obj_set_style_pad_left(status_icon_label, lv_dpx(5), LV_PART_MAIN);
         lv_obj_set_grid_cell(status_icon_label, LV_GRID_ALIGN_CENTER, 0, LV_GRID_ALIGN_CENTER, row);
     }
 
     auto icon_label = lv_label_create(parent);
     lv_label_set_text(icon_label, job.icon);
-    lv_obj_set_style_text_font(icon_label, XSMALL_ICONS_FONT, LV_PART_MAIN);
+    lv_obj_set_style_text_font(icon_label, XXSMALL_ICONS_FONT, LV_PART_MAIN);
     lv_obj_set_style_pad_left(icon_label, lv_dpx(5), LV_PART_MAIN);
     lv_obj_set_grid_cell(icon_label, LV_GRID_ALIGN_CENTER, 1, LV_GRID_ALIGN_CENTER, row);
 
@@ -365,7 +365,7 @@ void StatsUI::create_job(lv_obj_t* parent, Job& job, uint8_t row) {
     auto label = lv_label_create(parent);
     lv_label_set_text(label, strformat("%s: %s", time_str.c_str(), job.name.c_str()).c_str());
     lv_label_set_long_mode(label, LV_LABEL_LONG_DOT);
-    lv_obj_set_style_text_font(label, SMALL_FONT, LV_PART_MAIN);
+    lv_obj_set_style_text_font(label, XSMALL_FONT, LV_PART_MAIN);
     lv_obj_set_style_pad_hor(label, lv_dpx(5), LV_PART_MAIN);
     lv_obj_set_grid_cell(label, LV_GRID_ALIGN_STRETCH, 2, LV_GRID_ALIGN_CENTER, row);
 }
