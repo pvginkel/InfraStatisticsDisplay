@@ -32,7 +32,7 @@ withVault([vaultSecrets: [
                         // for setting the uid/gid.
                         sh 'git config --global --add safe.directory \'*\''
                         
-                        sh '/opt/esp/entrypoint.sh scripts/dockerbuild.sh'
+                        sh '/opt/esp/entrypoint.sh idf.py build'
                     }
                 }
             }
