@@ -65,6 +65,8 @@ static bool parse_kubernetes_node(const cJSON* item, KubernetesNodeDto& node) {
 
     const cJSON* name = cJSON_GetObjectItemCaseSensitive(item, "name");
     const cJSON* created = cJSON_GetObjectItemCaseSensitive(item, "created");
+    const cJSON* ready = cJSON_GetObjectItemCaseSensitive(item, "ready");
+    const cJSON* cordoned = cJSON_GetObjectItemCaseSensitive(item, "cordoned");
     const cJSON* allocated_pods = cJSON_GetObjectItemCaseSensitive(item, "allocated_pods");
     const cJSON* allocated_containers = cJSON_GetObjectItemCaseSensitive(item, "allocated_containers");
     const cJSON* cpu_capacity = cJSON_GetObjectItemCaseSensitive(item, "cpu_capacity");
@@ -72,15 +74,17 @@ static bool parse_kubernetes_node(const cJSON* item, KubernetesNodeDto& node) {
     const cJSON* memory_capacity = cJSON_GetObjectItemCaseSensitive(item, "memory_capacity");
     const cJSON* memory_usage = cJSON_GetObjectItemCaseSensitive(item, "memory_usage");
 
-    if (!cJSON_IsString(name) || !cJSON_IsNumber(created) || !cJSON_IsNumber(allocated_pods) ||
-        !cJSON_IsNumber(allocated_containers) || !cJSON_IsNumber(cpu_capacity) || !cJSON_IsNumber(cpu_usage) ||
-        !cJSON_IsNumber(memory_capacity) || !cJSON_IsNumber(memory_usage)) {
+    if (!cJSON_IsString(name) || !cJSON_IsNumber(created) || !cJSON_IsBool(ready) || !cJSON_IsBool(cordoned) ||
+        !cJSON_IsNumber(allocated_pods) || !cJSON_IsNumber(allocated_containers) || !cJSON_IsNumber(cpu_capacity) ||
+        !cJSON_IsNumber(cpu_usage) || !cJSON_IsNumber(memory_capacity) || !cJSON_IsNumber(memory_usage)) {
         ESP_LOGE(TAG, "Some parameters of Kubernetes node are not found or of the expected type");
         return false;
     }
 
     node.name = name->valuestring;
     node.created = static_cast<time_t>(created->valuedouble);
+    node.ready = cJSON_IsTrue(ready);
+    node.cordoned = cJSON_IsTrue(cordoned);
     node.allocated_pods = allocated_pods->valueint;
     node.allocated_containers = allocated_containers->valueint;
     node.cpu_capacity = static_cast<int64_t>(cpu_capacity->valuedouble);

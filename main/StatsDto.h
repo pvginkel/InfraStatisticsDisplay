@@ -12,6 +12,8 @@ struct JenkinsBuildDto {
 struct KubernetesNodeDto {
     string name;
     time_t created;
+    bool ready;
+    bool cordoned;
     int allocated_pods;
     int allocated_containers;
     int64_t cpu_capacity;

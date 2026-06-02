@@ -203,6 +203,37 @@ void StatsUI::create_kubernetes_node(lv_obj_t* parent, KubernetesNodeDto& node, 
     lv_obj_set_style_text_font(containers_label, SMALL_FONT, LV_PART_MAIN);
     lv_obj_set_style_pad_hor(containers_label, lv_dpx(5), LV_PART_MAIN);
     lv_obj_set_grid_cell(containers_label, LV_GRID_ALIGN_START, 3, LV_GRID_ALIGN_CENTER, 0);
+
+    // Status icons for unhealthy / cordoned nodes. They float just above the name as an
+    // overlay (ignored by the grid layout) so they never push the node text down. Nothing
+    // is shown for a ready, schedulable node. Created last so the grid (and thus the final
+    // position of the name) is fully resolved before we anchor the overlay to it.
+    if (!node.ready || node.cordoned) {
+        auto status_row = lv_obj_create(circle_cont);
+        reset_layout_container_styles(status_row);
+        lv_obj_add_flag(status_row, LV_OBJ_FLAG_IGNORE_LAYOUT);
+        lv_obj_set_flex_flow(status_row, LV_FLEX_FLOW_ROW);
+        lv_obj_set_flex_align(status_row, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+
+        if (!node.ready) {
+            auto not_ready_icon = lv_label_create(status_row);
+            lv_label_set_text(not_ready_icon, FA_TRIANGLE_EXCLAMATION);
+            lv_obj_set_style_text_font(not_ready_icon, XSMALL_ICONS_FONT, LV_PART_MAIN);
+            lv_obj_set_style_pad_hor(not_ready_icon, lv_dpx(4), LV_PART_MAIN);
+        }
+
+        if (node.cordoned) {
+            auto cordoned_icon = lv_label_create(status_row);
+            lv_label_set_text(cordoned_icon, FA_CIRCLE_PAUSE);
+            lv_obj_set_style_text_font(cordoned_icon, XSMALL_ICONS_FONT, LV_PART_MAIN);
+            lv_obj_set_style_pad_hor(cordoned_icon, lv_dpx(4), LV_PART_MAIN);
+        }
+
+        // Resolve the grid-computed position of the name, then anchor the overlay directly
+        // above it with a small gap.
+        lv_obj_update_layout(circle_cont);
+        lv_obj_align_to(status_row, name_label, LV_ALIGN_OUT_TOP_MID, 0, lv_dpx(-2));
+    }
 }
 
 void StatsUI::create_statistics(lv_obj_t* parent, uint8_t col, uint8_t row) {
