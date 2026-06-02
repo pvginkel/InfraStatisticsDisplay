@@ -1,15 +1,64 @@
 dependencies:
+  esp-mdm:
+    dependencies:
+    - name: idf
+      version: '>=5.3'
+    - name: esp-mqtt-support
+      path: ../esp-mqtt-support
+    - name: esp-network-support
+      path: ../esp-network-support
+    - name: esp-support
+      path: ../esp-support
+    source:
+      path: C:\Projects\esp-libs\esp-mdm
+      type: local
+    version: 0.1.0
+  esp-mqtt-support:
+    dependencies:
+    - name: idf
+      version: '>=5.3'
+    - name: esp-support
+      path: ../esp-support
+    source:
+      path: C:\Projects\esp-libs\esp-mqtt-support
+      type: local
+    version: 0.1.0
+  esp-network-support:
+    dependencies:
+    - name: idf
+      version: '>=5.3'
+    - name: esp-support
+      path: ../esp-support
+    source:
+      path: C:\Projects\esp-libs\esp-network-support
+      type: local
+    version: 0.1.0
+  esp-support:
+    dependencies:
+    - name: idf
+      version: '>=5.3'
+    source:
+      path: C:\Projects\esp-libs\esp-support
+      type: local
+    version: 0.1.0
   idf:
-    component_hash: null
     source:
       type: idf
-    version: 5.1.3
+    version: 5.5.3
   lvgl/lvgl:
     component_hash: 2567762b19953712ee38789ad8f8de57ad1f6e39283adefbbfc7184ffe662831
+    dependencies: []
     source:
-      service_url: https://api.components.espressif.com/
+      registry_url: https://components.espressif.com/
       type: service
     version: 8.2.0
-manifest_hash: 56c9a83c8727fe6e13fc458abf35b5e4e98c58f96b13e54d3fe810e95fe4c8cd
-target: esp32s3
-version: 1.0.0
+direct_dependencies:
+- esp-mdm
+- esp-mqtt-support
+- esp-network-support
+- esp-support
+- idf
+- lvgl/lvgl
+manifest_hash: 491dd01b54040c6113ddcf84f5e9dfaaef6d7ceb58f7e163a457ef64a47ac3d1
+target: esp32
+version: 2.0.0

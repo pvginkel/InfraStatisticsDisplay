@@ -4,35 +4,8 @@
 
 #include "Messages.h"
 
-string format(const char* fmt, ...) {
-    va_list ap;
-
-    va_start(ap, fmt);
-    auto length = vsnprintf(nullptr, 0, fmt, ap);
-    va_end(ap);
-
-    if (length < 0) {
-        abort();
-    }
-
-    auto buffer = (char*)malloc(length + 1);
-    if (!buffer) {
-        abort();
-    }
-
-    va_start(ap, fmt);
-    vsprintf(buffer, fmt, ap);
-    va_end(ap);
-
-    auto result = string(buffer, length);
-
-    free(buffer);
-
-    return result;
-}
-
 string format_number(int value) {
-    auto text = format("%d", value);
+    auto text = strformat("%d", value);
 
     // Count the number of digits.
 

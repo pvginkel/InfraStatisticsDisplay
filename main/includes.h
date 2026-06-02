@@ -52,6 +52,7 @@ using namespace std;
 #include "nvs_flash.h"
 #include "sdkconfig.h"
 #include "secrets.h"
+#include "strformat.h"
 
 #else
 

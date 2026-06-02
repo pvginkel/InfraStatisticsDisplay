@@ -1,0 +1,9 @@
+---
+BasedOnStyle: Google
+IndentWidth: 4
+ColumnLimit: 120
+AccessModifierOffset: -4
+IncludeCategories:
+  - Regex: "includes.h"
+    Priority: -1
+AllowShortIfStatementsOnASingleLine: false

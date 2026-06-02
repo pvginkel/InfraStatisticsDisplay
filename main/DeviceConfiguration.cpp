@@ -9,9 +9,9 @@ DeviceConfiguration::DeviceConfiguration() : _enable_ota(DEFAULT_ENABLE_OTA) {
 
     ESP_ERROR_CHECK(esp_read_mac(mac, ESP_MAC_WIFI_STA));
 
-    auto formattedMac = format("%02x-%02x-%02x-%02x-%02x-%02x", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+    auto formattedMac = strformat("%02x-%02x-%02x-%02x-%02x-%02x", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
 
-    _endpoint = format(CONFIG_DEVICE_CONFIG_ENDPOINT, formattedMac.c_str());
+    _endpoint = strformat(CONFIG_DEVICE_CONFIG_ENDPOINT, formattedMac.c_str());
 }
 
 esp_err_t DeviceConfiguration::load() {

@@ -73,7 +73,7 @@ void Application::begin_network_available() {
     auto err = _configuration.load();
 
     if (err != ESP_OK) {
-        auto error = format(MSG_FAILED_TO_RETRIEVE_CONFIGURATION, _configuration.get_endpoint().c_str());
+        auto error = strformat(MSG_FAILED_TO_RETRIEVE_CONFIGURATION, _configuration.get_endpoint());
 
         _loading_ui->set_error(strdup(error.c_str()));
         _loading_ui->set_state(LoadingUIState::Error);

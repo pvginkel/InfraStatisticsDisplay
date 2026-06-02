@@ -4,7 +4,6 @@
 
 #define esp_get_millis() uint32_t(esp_timer_get_time() / 1000ull)
 
-string format(const char* fmt, ...);
 string format_number(int value);
 
 #ifdef NDEBUG
@@ -46,7 +45,7 @@ string format_number(int value);
 bool iequals(const string& a, const string& b);
 int hextoi(char c);
 
-#define LOG_TAG(v) static const char* TAG = #v
+#define LOG_TAG(v) [[maybe_unused]] static const char* TAG = #v
 
 class cJSON_Data {
     cJSON* _data;
