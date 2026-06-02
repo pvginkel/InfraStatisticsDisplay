@@ -17,12 +17,20 @@ withVault([vaultSecrets: [
         ])
     ]) {
         node(POD_LABEL) {
+            stage('Cloning repo') {
+                dir('InfraStatisticsDisplay') {
+                    checkout scm
+                }
+
+                dir('esp-libs') {
+                     git branch: 'main',
+                        credentialsId: '5f6fbd66-b41c-405f-b107-85ba6fd97f10',
+                        url: 'https://github.com/pvginkel/esp-libs.git'
+                }
+            }
+
             stage('Build infra statistics display') {
                 dir('InfraStatisticsDisplay') {
-                    git branch: 'main',
-                        credentialsId: '5f6fbd66-b41c-405f-b107-85ba6fd97f10',
-                        url: 'https://github.com/pvginkel/InfraStatisticsDisplay.git'
-                        
                     container('idf') {
                         // Necessary because the IDF container doesn't have support
                         // for setting the uid/gid.
