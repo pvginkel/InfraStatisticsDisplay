@@ -1,35 +1,26 @@
 #pragma once
 
+#include "ApplicationBase.h"
 #include "LoadingUI.h"
-#include "LogManager.h"
-#include "NetworkConnection.h"
-#include "OTAManager.h"
-#include "Queue.h"
 #include "StatsDto.h"
 #include "StatsUI.h"
 
-class Application {
+class Application : public ApplicationBase {
     Device* _device;
-    NetworkConnection _network_connection;
-    OTAManager _ota_manager;
-    LoadingUI* _loading_ui;
-    StatsUI* _stats_ui;
-    Queue _queue;
-    DeviceConfiguration _configuration;
-    LogManager _log_manager;
-    bool _have_sntp_synced;
+    LoadingUI* _loading_ui{};
+    StatsUI* _stats_ui{};
 
 public:
     Application(Device* device);
 
-    void begin(bool silent);
-    void process();
+protected:
+    void do_begin() override;
+    void do_ready() override;
+    void do_network_connection_failed() override;
+    void do_process() override;
 
 private:
-    void setup_flash();
-    void do_begin(bool silent);
-    void begin_network();
-    void begin_network_available();
-    void begin_after_initialization();
-    void begin_ui();
+    void run();
+    void state_changed();
+    void register_mqtt_callbacks();
 };

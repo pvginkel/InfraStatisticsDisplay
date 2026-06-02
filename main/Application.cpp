@@ -2,120 +2,118 @@
 
 #include "Application.h"
 
+#include <chrono>
+
 #include "Messages.h"
 #include "driver/i2c.h"
 
 LOG_TAG(Application);
 
-Application::Application(Device* device)
-    : _device(device),
-      _network_connection(&_queue),
-      _loading_ui(nullptr),
-      _stats_ui(nullptr),
-      _have_sntp_synced(false) {}
+Application::Application(Device* device) : _device(device) {}
 
-void Application::begin(bool silent) {
-    ESP_LOGI(TAG, "Setting up the log manager");
+void Application::do_begin() {
+    ESP_LOGI(TAG, "Starting UI worker task");
 
-    _log_manager.begin();
+    ESP_ERROR_ASSERT(xTaskCreatePinnedToCore([](void* param) { ((Application*)param)->run(); }, "Application::run_task",
+                                             8192, this, 1, nullptr, 1));
 
-    setup_flash();
-    do_begin(silent);
+    get_mqtt_connection().on_connected_changed([this](auto state) {
+        if (state.connected) {
+            state_changed();
+
+            register_mqtt_callbacks();
+        }
+    });
 }
 
-void Application::setup_flash() {
-    ESP_LOGI(TAG, "Setting up flash");
+void Application::register_mqtt_callbacks() {
+    get_mqtt_connection().publish_button_discovery(
+        {
+            .name = "Identify",
+            .object_id = "identify",
+            .entity_category = "config",
+            .device_class = "identify",
+        },
+        []() { ESP_LOGI(TAG, "Requested identification"); });
 
-    auto ret = nvs_flash_init();
-    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
-        ESP_ERROR_CHECK(nvs_flash_erase());
-        ret = nvs_flash_init();
-    }
-    ESP_ERROR_CHECK(ret);
+    get_mqtt_connection().publish_button_discovery(
+        {
+            .name = "Restart",
+            .object_id = "restart",
+            .entity_category = "config",
+            .device_class = "restart",
+        },
+        []() {
+            ESP_LOGI(TAG, "Requested restart");
+
+            esp_restart();
+        });
 }
 
-void Application::do_begin(bool silent) {
+void Application::run() {
     ESP_LOGI(TAG, "Setting up loading UI");
 
-    _loading_ui = new LoadingUI(silent);
+    _loading_ui = new LoadingUI(is_silent_startup());
 
     _loading_ui->begin();
     _loading_ui->set_title(MSG_STARTING);
     _loading_ui->set_state(LoadingUIState::Loading);
     _loading_ui->render();
 
-    begin_network();
-}
+    auto last_tick_call = chrono::high_resolution_clock::now();
 
-void Application::begin_network() {
-    ESP_LOGI(TAG, "Connecting to WiFi");
+    while (true) {
+        auto start = chrono::high_resolution_clock::now();
 
-    _network_connection.on_state_changed([this](auto state) {
-        if (!_loading_ui) {
-            esp_restart();
+        process();
+
+        lv_timer_handler();
+
+        auto end = chrono::high_resolution_clock::now();
+        auto duration = chrono::duration_cast<chrono::milliseconds>(end - start).count();
+
+        auto sleep = 10 - duration;
+        if (sleep > 0) {
+            vTaskDelay(pdMS_TO_TICKS(sleep));
         }
 
-        if (state.connected) {
-            begin_network_available();
-        } else {
-            _loading_ui->set_error(MSG_FAILED_TO_CONNECT);
-            _loading_ui->set_state(LoadingUIState::Error);
-            _loading_ui->render();
-        }
-    });
+        auto after_sleep = chrono::high_resolution_clock::now();
+        auto last_tick_duration = chrono::duration_cast<chrono::milliseconds>(after_sleep - last_tick_call).count();
 
-    _network_connection.begin();
+        lv_tick_inc(last_tick_duration);
+
+        last_tick_call = after_sleep;
+    }
 }
 
-void Application::begin_network_available() {
-    ESP_LOGI(TAG, "Getting device configuration");
-
-    auto err = _configuration.load();
-
-    if (err != ESP_OK) {
-        auto error = strformat(MSG_FAILED_TO_RETRIEVE_CONFIGURATION, _configuration.get_endpoint());
-
-        _loading_ui->set_error(strdup(error.c_str()));
+void Application::do_network_connection_failed() {
+    if (_loading_ui) {
+        _loading_ui->set_error(MSG_FAILED_TO_CONNECT);
         _loading_ui->set_state(LoadingUIState::Error);
         _loading_ui->render();
-        return;
     }
-
-    _log_manager.set_configuration(_configuration);
-
-    if (_configuration.get_enable_ota()) {
-        _ota_manager.begin();
-    }
-
-    _queue.enqueue([this]() { begin_after_initialization(); });
 }
 
-void Application::begin_after_initialization() {
-    // Intialization complete.
-
+void Application::do_ready() {
     delete _loading_ui;
     _loading_ui = nullptr;
-
-    // Log the reset reason.
-    auto reset_reason = esp_reset_reason();
-    ESP_LOGI(TAG, "esp_reset_reason: %s (%d)", esp_reset_reason_to_name(reset_reason), reset_reason);
-
-    begin_ui();
-}
-
-void Application::begin_ui() {
-    ESP_LOGI(TAG, "Connected, showing UI");
 
     _stats_ui = new StatsUI();
     _stats_ui->begin();
 }
 
-void Application::process() {
+void Application::do_process() {
     _device->process();
-
-    _queue.process();
 
     if (_stats_ui) {
         _stats_ui->update();
     }
+}
+
+void Application::state_changed() {
+    if (!get_mqtt_connection().is_connected()) {
+        return;
+    }
+
+    get_mqtt_connection().send_state();
 }

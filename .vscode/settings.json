@@ -53,10 +53,28 @@
     "tuple": "cpp",
     "utility": "cpp"
   },
-  "cSpell.words": ["LOGI", "Lvgl", "MQTT", "roboto", "setpoint"],
+  "cSpell.words": [
+    "LOGI",
+    "Lvgl",
+    "MQTT",
+    "roboto",
+    "setpoint"
+  ],
   "files.exclude": {
     "documentation": true,
     "LvglWindowsSimulator": true
   },
-  "idf.currentSetup": "C:\\esp\\v5.5.3\\esp-idf"
+  "idf.currentSetup": "C:\\esp\\v5.5.3\\esp-idf",
+  "idf.customExtraVars": {
+    "OPENOCD_SCRIPTS": "C:\\Users\\pvgin\\.espressif\\tools\\openocd-esp32\\v0.12.0-esp32-20230921/openocd-esp32/share/openocd/scripts",
+    "IDF_CCACHE_ENABLE": "1",
+    "ESP_ROM_ELF_DIR": "C:\\Users\\pvgin\\.espressif\\tools\\esp-rom-elfs\\20230320/",
+    "IDF_TARGET": "esp32s3"
+  },
+  "clangd.path": "C:\\Espressif\\tools\\esp-clang\\esp-19.1.2_20250312\\esp-clang\\bin\\clangd.exe",
+  "clangd.arguments": [
+    "--background-index",
+    "--query-driver=**",
+    "--compile-commands-dir=c:\\Projects\\InfraStatisticsDisplay\\build"
+  ]
 }

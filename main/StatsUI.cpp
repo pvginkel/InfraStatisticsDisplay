@@ -155,7 +155,7 @@ void StatsUI::create_kubernetes_node(lv_obj_t* parent, KubernetesNodeDto& node, 
     lv_obj_set_grid_cell(cpu_icon_label, LV_GRID_ALIGN_START, 0, LV_GRID_ALIGN_CENTER, 0);
 
     auto cpu_label = lv_label_create(resources_row);
-    lv_label_set_text(cpu_label, format("%d%%", (int)(node.cpu_usage * 100.0f / node.cpu_capacity)).c_str());
+    lv_label_set_text(cpu_label, strformat("%d%%", (int)(node.cpu_usage * 100.0f / node.cpu_capacity)).c_str());
     lv_obj_set_style_text_font(cpu_label, SMALL_FONT, LV_PART_MAIN);
     lv_obj_set_style_pad_hor(cpu_label, lv_dpx(5), LV_PART_MAIN);
     lv_obj_set_grid_cell(cpu_label, LV_GRID_ALIGN_START, 1, LV_GRID_ALIGN_CENTER, 0);
@@ -167,7 +167,8 @@ void StatsUI::create_kubernetes_node(lv_obj_t* parent, KubernetesNodeDto& node, 
     lv_obj_set_grid_cell(memory_icon_label, LV_GRID_ALIGN_START, 2, LV_GRID_ALIGN_CENTER, 0);
 
     auto memory_label = lv_label_create(resources_row);
-    lv_label_set_text(memory_label, format("%d%%", (int)(node.memory_usage * 100.0f / node.memory_capacity)).c_str());
+    lv_label_set_text(memory_label,
+                      strformat("%d%%", (int)(node.memory_usage * 100.0f / node.memory_capacity)).c_str());
     lv_obj_set_style_text_font(memory_label, SMALL_FONT, LV_PART_MAIN);
     lv_obj_set_style_pad_hor(memory_label, lv_dpx(5), LV_PART_MAIN);
     lv_obj_set_grid_cell(memory_label, LV_GRID_ALIGN_START, 3, LV_GRID_ALIGN_CENTER, 0);
@@ -186,7 +187,7 @@ void StatsUI::create_kubernetes_node(lv_obj_t* parent, KubernetesNodeDto& node, 
     lv_obj_set_grid_cell(pods_icon_label, LV_GRID_ALIGN_START, 0, LV_GRID_ALIGN_CENTER, 0);
 
     auto pods_label = lv_label_create(containers_row);
-    lv_label_set_text(pods_label, format("%d", node.allocated_pods).c_str());
+    lv_label_set_text(pods_label, strformat("%d", node.allocated_pods).c_str());
     lv_obj_set_style_text_font(pods_label, SMALL_FONT, LV_PART_MAIN);
     lv_obj_set_style_pad_hor(pods_label, lv_dpx(5), LV_PART_MAIN);
     lv_obj_set_grid_cell(pods_label, LV_GRID_ALIGN_START, 1, LV_GRID_ALIGN_CENTER, 0);
@@ -198,7 +199,7 @@ void StatsUI::create_kubernetes_node(lv_obj_t* parent, KubernetesNodeDto& node, 
     lv_obj_set_grid_cell(containers_icon_label, LV_GRID_ALIGN_START, 2, LV_GRID_ALIGN_CENTER, 0);
 
     auto containers_label = lv_label_create(containers_row);
-    lv_label_set_text(containers_label, format("%d", node.allocated_containers).c_str());
+    lv_label_set_text(containers_label, strformat("%d", node.allocated_containers).c_str());
     lv_obj_set_style_text_font(containers_label, SMALL_FONT, LV_PART_MAIN);
     lv_obj_set_style_pad_hor(containers_label, lv_dpx(5), LV_PART_MAIN);
     lv_obj_set_grid_cell(containers_label, LV_GRID_ALIGN_START, 3, LV_GRID_ALIGN_CENTER, 0);
@@ -254,7 +255,8 @@ void StatsUI::create_last_builds(lv_obj_t* parent, uint8_t col, uint8_t row) {
     jobs.reserve(_stats.last_builds.size());
 
     for (auto& build : _stats.last_builds) {
-        jobs.emplace_back(FA_GEARS, nullptr, move(format("#%d %s", build.number, build.name.c_str())), build.execution);
+        jobs.emplace_back(FA_GEARS, nullptr, move(strformat("#%d %s", build.number, build.name.c_str())),
+                          build.execution);
     }
 
     create_jobs(parent, jobs, col, row);
@@ -266,13 +268,13 @@ void StatsUI::create_failed_jobs(lv_obj_t* parent, uint8_t col, uint8_t row) {
     jobs.reserve(_stats.last_failed_builds.size() + _stats.last_failed_jobs.size());
 
     for (auto& build : _stats.last_failed_builds) {
-        jobs.emplace_back(FA_GEARS, FA_CIRCLE_EXCLAMATION, move(format("#%d %s", build.number, build.name.c_str())),
+        jobs.emplace_back(FA_GEARS, FA_CIRCLE_EXCLAMATION, move(strformat("#%d %s", build.number, build.name.c_str())),
                           build.execution);
     }
 
     for (auto& job : _stats.last_failed_jobs) {
         jobs.emplace_back(FA_CIRCLE_PLAY, FA_CIRCLE_EXCLAMATION,
-                          move(format("%s (%s)", job.name.c_str(), job.ns.c_str())), job.created);
+                          move(strformat("%s (%s)", job.name.c_str(), job.ns.c_str())), job.created);
     }
 
     sort(jobs.begin(), jobs.end(), [](const Job& a, const Job& b) { return a.time > b.time; });
@@ -322,15 +324,15 @@ void StatsUI::create_job(lv_obj_t* parent, Job& job, uint8_t row) {
     string time_str;
 
     if (job_time_info.tm_year != now_time_info.tm_year) {
-        time_str = format("%d", job_time_info.tm_year);
+        time_str = strformat("%d", job_time_info.tm_year);
     } else if (!(job_time_info.tm_mon == now_time_info.tm_mon && job_time_info.tm_mday == now_time_info.tm_mday)) {
-        time_str = format("%d-%d", job_time_info.tm_mday, job_time_info.tm_mon + 1);
+        time_str = strformat("%d-%d", job_time_info.tm_mday, job_time_info.tm_mon + 1);
     } else {
-        time_str = format("%d:%02d", job_time_info.tm_hour, job_time_info.tm_min);
+        time_str = strformat("%d:%02d", job_time_info.tm_hour, job_time_info.tm_min);
     }
 
     auto label = lv_label_create(parent);
-    lv_label_set_text(label, format("%s: %s", time_str.c_str(), job.name.c_str()).c_str());
+    lv_label_set_text(label, strformat("%s: %s", time_str.c_str(), job.name.c_str()).c_str());
     lv_label_set_long_mode(label, LV_LABEL_LONG_DOT);
     lv_obj_set_style_text_font(label, SMALL_FONT, LV_PART_MAIN);
     lv_obj_set_style_pad_hor(label, lv_dpx(5), LV_PART_MAIN);

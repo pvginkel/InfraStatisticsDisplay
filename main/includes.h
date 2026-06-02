@@ -76,8 +76,4 @@ static T clamp(T value, T min, T max) {
 
 #define ESP_LOGE(...)
 
-#else
-
-#include "Mutex.h"
-
 #endif
