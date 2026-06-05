@@ -47,3 +47,10 @@ relations:
     source: ss:infra-statistics-display,3199b06f-ae1a-4df0-af38-96229376c00e
     target: svc:infra-statistics,e6a1608a-3657-4768-8f6b-1ba7d0691ca9
     type: Association
+
+  # Realizes the IoT-device capability — the selection axis for the IoT view
+  # (in-house ESP32 firmware, managed by IoTSupport, integrated via MQTT discovery).
+  - id: rel:infra-statistics-display-realizes-iot-device
+    source: ss:infra-statistics-display,3199b06f-ae1a-4df0-af38-96229376c00e
+    target: cap:iot-device
+    type: Realization
