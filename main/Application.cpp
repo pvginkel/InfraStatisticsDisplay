@@ -17,11 +17,11 @@ void Application::do_begin() {
     ESP_ERROR_ASSERT(xTaskCreatePinnedToCore([](void* param) { ((Application*)param)->run(); }, "Application::run_task",
                                              8192, this, 1, nullptr, 1));
 
+    get_mqtt_connection().on_publish_discovery([this]() { register_mqtt_callbacks(); });
+
     get_mqtt_connection().on_connected_changed([this](auto state) {
         if (state.connected) {
             state_changed();
-
-            register_mqtt_callbacks();
         }
     });
 }
