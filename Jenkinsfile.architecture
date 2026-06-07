@@ -3,7 +3,7 @@
 // The agent needs outbound HTTPS to architecture.webathome.org for validation.
 // Isolated from this repo's main build pipeline.
 
-library('JenkinsPipelineUtils') _
+library identifier: 'JenkinsPipelineUtils', changelog: false
 
 podTemplate(inheritFrom: 'jenkins-agent', containers: [
     containerTemplates.python('python')

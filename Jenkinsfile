@@ -1,4 +1,4 @@
-library('JenkinsPipelineUtils') _
+library identifier: 'JenkinsPipelineUtils', changelog: false
 
 withVault([vaultSecrets: [
     [path: 'kv/jenkins/iotsupport-pipeline-oidc', engineVersion: 2, secretValues: [
