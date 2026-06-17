@@ -107,7 +107,7 @@ void StatsUI::create_kubernetes_nodes(lv_obj_t* parent, uint8_t col, uint8_t row
     top_outer_cont_col_desc = new lv_coord_t[node_count * 2];
     for (size_t i = 0; i < node_count; i++) {
         top_outer_cont_col_desc[i * 2] = LV_GRID_CONTENT;
-        top_outer_cont_col_desc[i * 2 + 1] = lv_dpx(50);
+        top_outer_cont_col_desc[i * 2 + 1] = lv_dpx(17);
     }
     top_outer_cont_col_desc[node_count * 2 - 1] = LV_GRID_TEMPLATE_LAST;
     static lv_coord_t top_outer_cont_row_desc[] = {LV_GRID_FR(1), LV_GRID_TEMPLATE_LAST};
@@ -129,7 +129,7 @@ void StatsUI::create_kubernetes_node(lv_obj_t* parent, KubernetesNodeDto& node, 
     static lv_coord_t cont_row_desc[] = {LV_GRID_FR(1),   LV_GRID_CONTENT, LV_GRID_CONTENT,
                                          LV_GRID_CONTENT, LV_GRID_FR(1),   LV_GRID_TEMPLATE_LAST};
     lv_obj_set_grid_dsc_array(circle_cont, cont_col_desc, cont_row_desc);
-    lv_obj_set_size(circle_cont, lv_dpx(230), lv_dpx(230));
+    lv_obj_set_size(circle_cont, lv_dpx(207), lv_dpx(207));
     lv_obj_set_style_radius(circle_cont, LV_RADIUS_CIRCLE, LV_PART_MAIN);
     lv_obj_set_style_border_width(circle_cont, lv_dpx(6), LV_PART_MAIN);
     lv_obj_set_style_border_color(circle_cont, lv_color_black(), LV_PART_MAIN);
@@ -318,11 +318,12 @@ void StatsUI::create_jobs(lv_obj_t* parent, vector<Job>& jobs, uint8_t col, uint
     reset_layout_container_styles(cont);
     lv_obj_set_grid_cell(cont, LV_GRID_ALIGN_STRETCH, col, LV_GRID_ALIGN_START, row);
     static lv_coord_t cont_col_desc[] = {LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_FR(1), LV_GRID_TEMPLATE_LAST};
-    static lv_coord_t cont_row_desc[] = {LV_GRID_CONTENT, LV_GRID_CONTENT,      LV_GRID_CONTENT, LV_GRID_CONTENT,
-                                         LV_GRID_CONTENT, LV_GRID_CONTENT,      LV_GRID_CONTENT, LV_GRID_TEMPLATE_LAST};
+    static lv_coord_t cont_row_desc[] = {LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_CONTENT,      LV_GRID_CONTENT,
+                                         LV_GRID_CONTENT, LV_GRID_CONTENT, LV_GRID_CONTENT,      LV_GRID_CONTENT,
+                                         LV_GRID_TEMPLATE_LAST};
     lv_obj_set_grid_dsc_array(cont, cont_col_desc, cont_row_desc);
 
-    auto job_count = min((int)jobs.size(), 7);
+    auto job_count = min((int)jobs.size(), 8);
 
     for (auto i = 0; i < job_count; i++) {
         create_job(cont, jobs[i], i);
