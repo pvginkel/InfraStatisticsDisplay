@@ -39,12 +39,19 @@ preamble:
 
     Two things that will otherwise look like faults:
 
-    - Every `cexec esp-idf` command prints a Python-detection banner on stdout
-      and an ESP-IDF activation block on stderr before its own output. That is
-      the toolchain, not an error (Triage #876). Filter it with `tail` or
-      `grep -v` whenever you parse a sidecar command's output.
-    - A build rewrites the tracked `dependencies.lock`, so `git status` shows it
-      modified after any clean build. Do not commit that rewrite: it bundles the
-      IDF version bump with a silent re-resolution of every git-pinned component,
-      a machine-local `source.path` and a CRLF->LF flip, and CI pins its own IDF
-      version regardless. Run `git checkout -- dependencies.lock` after a build.
+    - Every `cexec esp-idf` command prints a banner before its own output: 8
+      lines on stdout (a python3 detection block, then a "Done! You can now
+      compile ESP-IDF projects / Go to the project directory and run:" epilogue)
+      and 9 lines of activation log on stderr. That is the toolchain, not an
+      error (Triage #876) — and note the epilogue's last line is literally
+      `idf.py build`, which reads like the command echoing itself. All of the
+      banner precedes the command's own output, so filtering stdout with `tail`
+      or `grep -v` is reliable whenever you parse a sidecar command.
+    - A build that actually resolves dependencies — a fresh tree, or one after
+      `idf.py fullclean` — rewrites the tracked `dependencies.lock`. An
+      incremental re-build leaves it alone. Do not commit that rewrite: measured
+      here it is pure machine-local noise, namely CRLF->LF across all 64 lines
+      plus the four `source.path` values moving from `C:\Projects\esp-libs\...`
+      to `/work/esp-libs/...`. Nothing else moves — the IDF version, the
+      lvgl/lvgl component hash and the manifest hash are all unchanged. Run
+      `git checkout -- dependencies.lock` after such a build.
