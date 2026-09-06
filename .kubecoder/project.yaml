@@ -1,0 +1,37 @@
+# Curated entry points for InfraStatisticsDisplay.
+# Schema: https://kubecoder.home/help/reference/project-yaml/
+
+projects:
+  root:
+    description: >-
+      ESP-IDF firmware for the ESP32-S3 / Waveshare e-paper display that renders
+      homelab infrastructure statistics (Jenkins builds, Kubernetes jobs,
+      container restarts) pulled from the Infra Statistics service.
+
+    # The firmware pipeline. There is a second job, AaC/InfraStatisticsDisplay
+    # (Jenkinsfile.architecture), which only validates docs/architecture/*.yaml —
+    # that is what `lint:` below mirrors.
+    jenkins: Firmware/InfraStatisticsDisplay
+
+    # No `setup:` statements. A fresh clone is buildable the moment the esp-libs
+    # sibling that config.yaml brings in is in place; `idf.py build` fetches the
+    # managed components itself on its first run. Deliberately NOT pre-warmed
+    # with `idf.py reconfigure`: that rewrites the tracked dependencies.lock and
+    # would dirty the working tree on every pod restart.
+
+    # `cexec esp-idf` already runs through the toolchain's activation wrapper, so
+    # this is a bare `idf.py build` where the Jenkinsfile writes
+    # `/opt/esp/entrypoint.sh idf.py build`. Same command, same IDF version.
+    build: cexec esp-idf idf.py build
+
+    # `test:` is deliberately unset: this repo has no test suite. Firmware
+    # behaviour is verified by flashing a device, which cannot be done from here.
+
+    # The architecture-as-code artifact gate, exactly as Jenkinsfile.architecture
+    # runs it. Two things to know before trusting a red:
+    #  - It is a NETWORK CALL inside a gate. The script POSTs to
+    #    architecture.webathome.org, so `kc project lint` fails (exit 2) whenever
+    #    that service is down, independently of anything in this repo.
+    #  - It runs in the dev container, not a sidecar: the script is stdlib-only
+    #    Python 3, which is why there is no `cexec` prefix.
+    lint: ./scripts/arch-validate.py docs/architecture/*.yaml

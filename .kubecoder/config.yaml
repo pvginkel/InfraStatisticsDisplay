@@ -1,0 +1,50 @@
+# The KubeCoder environment for InfraStatisticsDisplay — ESP-IDF firmware for an
+# ESP32-S3 / Waveshare e-paper homelab statistics display.
+# Schema: https://kubecoder.home/help/reference/config-yaml/
+
+repos:
+  # The shared ESP component library. Load-bearing for the build, not a
+  # convenience: the top-level CMakeLists.txt lists
+  # ../esp-libs/<component>/sdkconfig.defaults in SDKCONFIG_DEFAULTS, and
+  # main/idf_component.yml declares ../../esp-libs/<component> path dependencies.
+  # Without a checkout beside this repo the build stops at CMake configure with a
+  # missing component path. This is the layout the Jenkinsfile arranges by
+  # cloning esp-libs next to the workspace. Read-only here — nothing in this
+  # environment writes to it.
+  - url: https://github.com/pvginkel/esp-libs
+    shared: true
+
+capabilities:
+  github: rw
+
+tools:
+  # ESP-IDF 5.5.3 — the version this repo's Jenkinsfile pins (espressif/idf:v5.5.3).
+  # Its memory limit, its .ccache home overlay and the /opt/esp/entrypoint.sh
+  # activation wrapper all live on the catalog entry, so `cexec esp-idf idf.py …`
+  # is already an activated shell: never repeat CI's /opt/esp/entrypoint.sh prefix.
+  - use: esp-idf
+
+setup:
+  - kc project setup
+
+preamble:
+  instructions: |
+    ESP-IDF firmware for an ESP32-S3 e-paper display. Build with
+    `kc project build` (which runs `cexec esp-idf idf.py build`). There is no
+    test suite. Flashing and deployment are CI's and a hand step — they are not
+    reachable from this environment.
+
+    /work/esp-libs is a shared, read-only checkout of the ESP component library
+    the build reads. Never write to it.
+
+    Two things that will otherwise look like faults:
+
+    - Every `cexec esp-idf` command prints a Python-detection banner on stdout
+      and an ESP-IDF activation block on stderr before its own output. That is
+      the toolchain, not an error (Triage #876). Filter it with `tail` or
+      `grep -v` whenever you parse a sidecar command's output.
+    - A build rewrites the tracked `dependencies.lock`, so `git status` shows it
+      modified after any clean build. Do not commit that rewrite: it bundles the
+      IDF version bump with a silent re-resolution of every git-pinned component,
+      a machine-local `source.path` and a CRLF->LF flip, and CI pins its own IDF
+      version regardless. Run `git checkout -- dependencies.lock` after a build.
