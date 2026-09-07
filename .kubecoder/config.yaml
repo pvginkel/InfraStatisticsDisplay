@@ -47,11 +47,7 @@ preamble:
       `idf.py build`, which reads like the command echoing itself. All of the
       banner precedes the command's own output, so filtering stdout with `tail`
       or `grep -v` is reliable whenever you parse a sidecar command.
-    - A build that actually resolves dependencies — a fresh tree, or one after
-      `idf.py fullclean` — rewrites the tracked `dependencies.lock`. An
-      incremental re-build leaves it alone. Do not commit that rewrite: measured
-      here it is pure machine-local noise, namely CRLF->LF across all 64 lines
-      plus the four `source.path` values moving from `C:\Projects\esp-libs\...`
-      to `/work/esp-libs/...`. Nothing else moves — the IDF version, the
-      lvgl/lvgl component hash and the manifest hash are all unchanged. Run
-      `git checkout -- dependencies.lock` after such a build.
+    - `dependencies.lock` is gitignored, not tracked: a build that resolves
+      dependencies — a fresh tree, or one after `idf.py fullclean` — writes it
+      locally, an incremental re-build leaves it alone, and a build changes
+      nothing tracked.

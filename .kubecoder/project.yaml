@@ -15,9 +15,7 @@ projects:
 
     # No `setup:` statements. A fresh clone is buildable the moment the esp-libs
     # sibling that config.yaml brings in is in place; `idf.py build` fetches the
-    # managed components itself on its first run. Deliberately NOT pre-warmed
-    # with `idf.py reconfigure`: that rewrites the tracked dependencies.lock and
-    # would dirty the working tree on every pod restart.
+    # managed components itself on its first run.
 
     # `cexec esp-idf` already runs through the toolchain's activation wrapper, so
     # this is a bare `idf.py build` where the Jenkinsfile writes
