@@ -24,9 +24,6 @@ tools:
   # is already an activated shell: never repeat CI's /opt/esp/entrypoint.sh prefix.
   - use: esp-idf
 
-setup:
-  - kc project setup
-
 preamble:
   instructions: |
     ESP-IDF firmware for an ESP32-S3 e-paper display. Build with
