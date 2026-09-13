@@ -23,6 +23,8 @@ tools:
   # activation wrapper all live on the catalog entry, so `cexec esp-idf idf.py …`
   # is already an activated shell: never repeat CI's /opt/esp/entrypoint.sh prefix.
   - use: esp-idf
+  # Provides clang-format for the `lint:` gate over main/.
+  - use: native
 
 preamble:
   instructions: |
