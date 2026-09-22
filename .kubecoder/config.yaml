@@ -13,6 +13,9 @@ repos:
   # environment writes to it.
   - url: https://github.com/pvginkel/esp-libs
     shared: true
+  # The homelab container images: infra-statistics (the backend this display
+  # reads) and the esp-idf toolchain image this environment builds with.
+  - url: https://github.com/pvginkel/DockerImages
 
 capabilities:
   github: rw
