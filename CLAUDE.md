@@ -9,6 +9,10 @@ service and renders homelab metrics: Kubernetes node health, container/pod count
 Jenkins builds, and failed builds/jobs. It is an esp-mdm device: network, MQTT, OTA, logging and provisioning all
 come from the shared `esp-libs` components, and the device is managed over the air by IoT Support.
 
+The backend it polls is the `infra-statistics` image in the DockerImages repo, checked out beside this one as
+`../DockerImages/infra-statistics` (see "Backend contract" below). Changes to the JSON shape have to land on both
+sides.
+
 ## Commands
 
 The build needs the shared component library checked out **beside** this repo as `../esp-libs`
@@ -78,6 +82,29 @@ descriptors (`static lv_coord_t ... LV_GRID_TEMPLATE_LAST` arrays) and the helpe
 boundaries from the top of the hour (default 1800 s) minus 10 s, downloads `CONFIG_INFRA_STATISTICS_ENDPOINT`
 (max 128 KB), parses it with `StatsDto::from_json` (cJSON, strict field-type checks, fails the whole parse on any
 bad item), and calls `render()`. A failed download or parse keeps the previous screen.
+
+### Backend contract (`../DockerImages/infra-statistics`)
+
+The endpoint is a small Flask service: `app/main.py` composes the document, `app/myjenkinsapi.py` and
+`app/mykubernetesapi.py` fetch from Jenkins and the Kubernetes API. `GET /stats?jobs=N` returns one JSON object,
+and its Python dataclasses are the authoritative shape that `StatsDto::from_json` must mirror. The firmware asks
+for `jobs=8` (baked into `CONFIG_INFRA_STATISTICS_ENDPOINT`); `jobs` bounds the length of each list below.
+
+| Key | Items | Notes |
+| --- | --- | --- |
+| `last_builds`, `last_failed_builds` | `{name, number, execution, status}` | `status` ∈ IN_PROGRESS, ABORTED, FAILURE, NOT_BUILT, SUCCESS, UNSTABLE. An unknown value fails the whole parse, so a new status server-side needs `parse_jenkins_build_status` updated too. Failed builds are limited to the last 14 days. |
+| `nodes` | `{name, created, ready, cordoned, allocated_pods, allocated_containers, cpu_capacity, cpu_usage, memory_capacity, memory_usage}` | CPU in nanocores, memory in KiB. The UI only shows usage/capacity percentages, so units cancel. |
+| `last_failed_jobs` | `{name, namespace, created, completed, succeeded, failed}` | `namespace` lands in `KubernetesJobDto::ns`; `completed` may be `null`. Also 14-day bounded. |
+| `container_starts` | `{day, week}` | Counted by a pod watch in the service and persisted to `/data`, not derived from the cluster on request. |
+
+Top-level keys are optional to the firmware, but every nested field is required and type-checked: one missing or
+mistyped field rejects the document and the previous screen stays. The UI shows at most 8 rows per column; the
+failures column merges `last_failed_builds` and `last_failed_jobs` by time before truncating.
+
+**Timestamps are pre-shifted.** The service emits `execution`, `created` and `completed` as UTC epoch **plus the
+`TIMEZONE` offset** (Europe/Amsterdam in deployment). The device never sets `TZ`, so its `localtime` is UTC and the
+shifted values render as local wall-clock time. Adding a timezone to the firmware, or making the backend emit true
+UTC, breaks the display unless the other side changes with it.
 
 ### Display path
 
