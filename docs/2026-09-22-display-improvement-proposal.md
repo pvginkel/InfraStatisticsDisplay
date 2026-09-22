@@ -107,50 +107,33 @@ Type scale (Roboto, generated through `tools/generate-fonts.json`): Regular 36 (
 shield, hard-drive, lock, certificate, clock, server.
 
 Budget at 800 x 480 with the existing 13 px margin: 454 px of height, 43 px per body row, 38 px
-per title row. The activity region is the elastic one and takes what is left (three to four build
-lines when quiet, fewer when the alert band grows).
+per title row. The activity region is the elastic one and takes what is left (three build lines
+when quiet, two with a two-line alert band).
 
-Quiet state:
+The mockups below are real 800 x 480 1-bit bitmaps rendered with the repo's own Roboto and Font
+Awesome files, so the glyphs are the size the panel would show them. They come from
+`proposal-mockups/render.py`, which measures every string and warns when one would cross its
+column. That script is also the seed of the server-side renderer in section 6, option B.
 
-```
-┌──────────────────────────────────────────────────────────────────────────────┐
-│ ✓  Geen alerts                                          ▶ Build-Main 3 min   │
-├──────────────────────────┬──────────────────────────┬────────────────────────┤
-│ PROXMOX                  │ KUBERNETES               │ OPSLAG                 │
-│ ● ● ●     23 / 25 VMs    │ ● ● ● ●   ✓ pods         │ ceph     ✓ 61 %        │
-│ backup ✓  04:12          │ 42 starts (gem. 31)      │ openbao  ✓             │
-├──────────────────────────┼──────────────────────────┼────────────────────────┤
-│ BACKUPS                  │ CERTIFICATEN             │ CRON                   │
-│ ✓  oudste 7 u            │ ✓  31 d                  │ ✓  13 / 13             │
-├──────────────────────────┴──────────────────────────┴────────────────────────┤
-│ JENKINS                                                    14 builds vandaag │
-│ ✓ 14:12  KubeCoder Build-Main #233                                           │
-│ ✓ 13:55  DockerImages #1410                                                  │
-│ ✓ 12:40  CalendarDisplay #412                                                │
-└──────────────────────────────────────────────────────────────────────────────┘
-```
+Rendering them taught one thing the ASCII sketch hid: at 36 px, three tile columns of 258 px hold
+about twelve characters, which is not enough for "23/25 VMs" next to three node dots or for
+"srvk8s3 NotReady". So the platform tiles became three full-width rows (label, then two content
+columns) and only the short safety-net tiles keep the three-column grid. The Kubernetes label is
+"K8S" to keep the label column at 175 px.
 
-With problems (the top band is inverted, white on black):
+Quiet state (`proposal-mockups/quiet.png`):
 
-```
-┌──────────────────────────────────────────────────────────────────────────────┐
-│▓▓ 2 ALERTS ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓│
-│ ✗ BackupOverdue        postgres-pas          3 u                             │
-│ ⚠ NodeMemoryStalled    srvk8s3               40 m                            │
-├──────────────────────────┬──────────────────────────┬────────────────────────┤
-│ PROXMOX                  │ KUBERNETES               │ OPSLAG                 │
-│ ● ● ●     23 / 25 VMs    │ ● ● ○ ●   ✗ 1 pod        │ ceph     ⚠ 84 %        │
-│ backup ✓  04:12          │ srvk8s3 NotReady         │ openbao  ✓             │
-├──────────────────────────┼──────────────────────────┼────────────────────────┤
-│ BACKUPS                  │ CERTIFICATEN             │ CRON                   │
-│ ✗  postgres 3 d          │ ⚠  9 d  secrets.home     │ ✓  13 / 13             │
-├──────────────────────────┴──────────────────────────┴────────────────────────┤
-│ JENKINS   ✗ 1 rood                                                           │
-│ ✗ 12:40  CalendarDisplay #412                                                │
-│ ✓ 14:12  KubeCoder Build-Main #233                                           │
-└──────────────────────────────────────────────────────────────────────────────┘
-  ⚠ gegevens van 09:00          (footer only when stale)
-```
+![quiet](proposal-mockups/quiet.png)
+
+With problems (`proposal-mockups/alerting.png`). The alert band is inverted and has no title row;
+the band itself is the message, and when more alerts fire than fit, the last row becomes
+"+ N meer". Everything that is wrong also carries a cross or triangle glyph, so nothing depends on
+reading the words:
+
+![alerting](proposal-mockups/alerting.png)
+
+Not shown: the stale footer, "⚠ gegevens van 09:00" in 32 px under the build lines, which only
+appears when the last fetch failed.
 
 Labels are Dutch per the `Messages.h` convention; the tile names happen to be near-identical in
 both languages. Icon plus a short word beats the current icon-only style now that there is room.
@@ -198,24 +181,19 @@ phase 2 changes shape.
 
 ## 7. Refresh behaviour
 
-These apply under A or B and are independent of the redesign:
+The 30 minute interval is a given: the panel is the cheap kind, and anything closer to real time
+is a different panel, not a firmware change. Everything below keeps that cadence and only removes
+refreshes that show nothing new. These apply under A or B and are independent of the redesign:
 
 - **Skip identical frames.** Compare the packed frame with the previous one before calling
   `_display.update()`. With the footer only appearing when stale, a quiet screen is bit-identical
-  between polls and never flickers. Under B the 304 gives the same for free.
-- **Poll every 10 minutes instead of 30.** Once unchanged frames are skipped, a faster poll costs
-  nothing when quiet, and an alert reaches the wall within 10 minutes instead of up to 30. If
-  daytime build activity makes that flicker too often, drop the feed back to a 30 minute cadence
-  while keeping tiles at 10.
-- **Partial refresh, optional.** The 0.4 s flicker-free partial mode would let the alert band and
-  clock update far more often. It only works on post-September-2023 panel revisions and the manual
-  wants a full refresh every few partials (`set_full_update_every(n)`). Worth a one-evening test on
-  the device; not a dependency of anything above.
+  between polls and never flickers. Under B the 304 gives the same for free. Nothing about the
+  design depends on the age of the data being shown: every item that has a time shows it.
 - **An MQTT "Ververs" button** next to Identify and Restart. Today the only way to force a refresh
-  is a reboot.
+  is a reboot. This is the one place a refresh happens off the 30 minute grid, and only on request.
 - **Backend collects in the background** every 5 minutes and `/stats` (or the bitmap) serves the
   last snapshot instantly, with `generated_at`. The 10-second early-fire hack in
-  `StatsUI::do_update()` goes, and the display can poll as often as it likes.
+  `StatsUI::do_update()` goes, and the on-the-hour update lands on the hour.
 
 ## 8. Considered and not recommended now
 
@@ -263,8 +241,8 @@ the new sections, simulator fixtures.
 **Phase 3, tiles that need infrastructure (each small once the prerequisite exists).** Proxmox
 tile after the PVEAuditor token is in OpenBao. Cron tile after the ClusterRole rule. Ceph after the
 mgr prometheus module is enabled and scraped, which also gives Grafana and Alertmanager Ceph
-visibility for the first time and is worth doing on its own. Optional: 10 minute cadence, partial
-refresh test, page two with an MQTT or physical button.
+visibility for the first time and is worth doing on its own. Optional: page two with an MQTT or
+physical button.
 
 ## 10. Decisions needed from you
 
