@@ -6,7 +6,7 @@
 library identifier: 'JenkinsPipelineUtils', changelog: false
 
 podTemplate(inheritFrom: 'jenkins-agent', containers: [
-    containerTemplates.python('python')
+    containerTemplates.aac_tools('aac-tools')
 ]) {
     node(POD_LABEL) {
         stage('Cloning repo') {
@@ -14,8 +14,8 @@ podTemplate(inheritFrom: 'jenkins-agent', containers: [
         }
 
         stage('Architecture') {
-            container('python') {
-                sh './scripts/arch-validate.py docs/architecture/*.yaml'
+            container('aac-tools') {
+                sh 'arch-validate docs/architecture/*.yaml'
             }
             archiveArtifacts artifacts: 'docs/architecture/*.yaml', fingerprint: true
         }

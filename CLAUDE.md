@@ -22,7 +22,7 @@ pulls in their `sdkconfig.defaults`). CI clones it there; the KubeCoder environm
 
 ```sh
 kc project build     # cexec esp-idf idf.py build  (the curated entry point; use this)
-kc project lint      # arch-validate.py over docs/architecture/*.yaml, then clang-format --dry-run over main/
+kc project lint      # arch-validate (aac-tools) over docs/architecture/*.yaml, then clang-format --dry-run over main/
 kc project info      # lists what is wired
 
 cexec esp-idf idf.py fullclean          # forces a dependency re-resolve on the next build

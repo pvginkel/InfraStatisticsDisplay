@@ -26,14 +26,12 @@ projects:
     # behaviour is verified by flashing a device, which cannot be done from here.
 
     # First, the architecture-as-code artifact gate, exactly as
-    # Jenkinsfile.architecture runs it. Two things to know before trusting a red:
-    #  - It is a NETWORK CALL inside a gate. The script POSTs to
-    #    architecture.webathome.org, so `kc project lint` fails (exit 2) whenever
-    #    that service is down, independently of anything in this repo.
-    #  - It runs in the dev container, not a sidecar: the script is stdlib-only
-    #    Python 3, which is why there is no `cexec` prefix.
+    # Jenkinsfile.architecture runs it, from the aac-tools toolchain. It is a
+    # NETWORK CALL inside a gate: it POSTs to architecture.webathome.org, so
+    # `kc project lint` fails (exit 2) whenever that service is down,
+    # independently of anything in this repo.
     # Second, clang-format over the C/C++ sources in main/, using main/.clang-format.
     # The lv_font_*.c tables are lv_font_conv output and are left out.
     lint:
-      - ./scripts/arch-validate.py docs/architecture/*.yaml
+      - cexec aac-tools arch-validate docs/architecture/*.yaml
       - cexec native sh -c 'find main \( -name "*.c" -o -name "*.cpp" -o -name "*.h" -o -name "*.hpp" \) ! -name "lv_font_*.c" -print0 | xargs -0 clang-format --dry-run --Werror'
