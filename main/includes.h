@@ -51,7 +51,6 @@ using namespace std;
 #include "mqtt_client.h"
 #include "nvs_flash.h"
 #include "sdkconfig.h"
-#include "secrets.h"
 #include "strformat.h"
 
 #else

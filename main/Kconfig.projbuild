@@ -2,9 +2,6 @@ menu "Device Configuration"
 
     orsource "$IDF_PATH/examples/common_components/env_caps/$IDF_TARGET/Kconfig.env_caps"
 
-    config WIFI_SSID
-        string "WiFi SSID"
-
     config DEVICE_CONFIG_ENDPOINT
         string "Device config endpoint (%s becomes MAC address)"
 
