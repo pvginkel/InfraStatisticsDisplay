@@ -38,8 +38,11 @@ cexec native clang-format -i main/StatsUI.cpp   # format one file (style: main/.
   operator's workstation flow (see `.vscode/settings.json`, which is full of Windows paths on purpose).
 - `kc project lint` step one is a network call to `architecture.webathome.org`. Exit 2 means the service is down,
   exit 1 means the YAML is invalid. Only exit 1 is a repo problem.
-- Regenerating fonts (`tools/generate-fonts.bat` → `pnpm run generate-fonts`, driven by `tools/generate-fonts.json`)
-  is a hand-run Windows step; the `lv_font_*.c` files are its committed output and are excluded from clang-format.
+- Regenerating fonts is `pnpm run generate-fonts` in `tools/`, driven by `tools/generate-fonts.json`. In-pod:
+  `cexec frontend sh -c 'cd tools && pnpm install --frozen-lockfile && pnpm run generate-fonts'`; on Windows,
+  `tools/generate-fonts.bat`. The `lv_font_*.c` files are its committed output and are excluded from clang-format.
+  Their `Opts:` header records the `-o` path with the host's separator, so a Linux run rewrites that one comment
+  line (`..\main` → `../main`) in every file even when the glyph tables are unchanged.
 - `sdkconfig`, `dependencies.lock`, `managed_components/` and `build/` are gitignored. Only `sdkconfig.defaults` is
   the source of truth for config; a fresh build regenerates the rest.
 - Deployment is CI-only: the Jenkinsfile builds and then runs `scripts/upload.sh` against IoT Support's pipeline
