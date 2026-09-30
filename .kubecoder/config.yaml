@@ -30,6 +30,9 @@ tools:
   - use: native
   # arch-validate, the architecture artifact's lint gate.
   - use: aac-tools
+  # Node.js with pnpm, for regenerating the lv_font_*.c tables from tools/
+  # (lv_font_conv, driven by tools/generate-fonts.json).
+  - use: frontend
 
 preamble:
   instructions: |
