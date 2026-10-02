@@ -18,7 +18,7 @@ projects:
     # managed components itself on its first run.
 
     # `cexec esp-idf` already runs through the toolchain's activation wrapper, so
-    # this is a bare `idf.py build` where the Jenkinsfile writes
+    # this is a bare `idf.py build` where CI's espFirmware.build writes
     # `/opt/esp/entrypoint.sh idf.py build`. Same command, same IDF version.
     build: cexec esp-idf idf.py build
 
