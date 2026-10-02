@@ -40,9 +40,11 @@ cexec native clang-format -i main/StatsUI.cpp   # format one file (style: main/.
   exit 1 means the YAML is invalid. Only exit 1 is a repo problem.
 - Regenerating fonts is `pnpm run generate-fonts` in `tools/`, driven by `tools/generate-fonts.json`. In-pod:
   `cexec frontend sh -c 'cd tools && pnpm install --frozen-lockfile && pnpm run generate-fonts'`; on Windows,
-  `tools/generate-fonts.bat`. The `lv_font_*.c` files are its committed output and are excluded from clang-format.
-  Their `Opts:` header records the `-o` path with the host's separator, so a Linux run rewrites that one comment
-  line (`..\main` → `../main`) in every file even when the glyph tables are unchanged.
+  `tools/generate-fonts.bat`, which needs pnpm 9 or newer (the lockfile is v9). `lv_font_conv` is pinned to exactly
+  1.5.2, the version the committed fonts came from; 1.5.3 changes the glyph tables. The `lv_font_*.c` files are its
+  committed output and are excluded from clang-format. Their `Opts:` header records the `-o` path with the host's
+  separator, so a Linux run rewrites that one comment line (`..\main` → `../main`) in every file even when the glyph
+  tables are unchanged; do not commit that churn.
 - `sdkconfig`, `dependencies.lock`, `managed_components/` and `build/` are gitignored. Only `sdkconfig.defaults` is
   the source of truth for config; a fresh build regenerates the rest.
 - Deployment is CI-only: the Jenkinsfile builds and then runs `scripts/upload.sh` against IoT Support's pipeline
